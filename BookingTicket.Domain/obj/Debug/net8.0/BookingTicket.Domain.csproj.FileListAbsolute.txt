@@ -1,0 +1,12 @@
+E:\DoAnTotNghiep\BackEnd\BookingTicket.Domain\bin\Debug\net8.0\BookingTicket.Domain.deps.json
+E:\DoAnTotNghiep\BackEnd\BookingTicket.Domain\bin\Debug\net8.0\BookingTicket.Domain.dll
+E:\DoAnTotNghiep\BackEnd\BookingTicket.Domain\bin\Debug\net8.0\BookingTicket.Domain.pdb
+E:\DoAnTotNghiep\BackEnd\BookingTicket.Domain\obj\Debug\net8.0\BookingTicket.Domain.csproj.AssemblyReference.cache
+E:\DoAnTotNghiep\BackEnd\BookingTicket.Domain\obj\Debug\net8.0\BookingTicket.Domain.GeneratedMSBuildEditorConfig.editorconfig
+E:\DoAnTotNghiep\BackEnd\BookingTicket.Domain\obj\Debug\net8.0\BookingTicket.Domain.AssemblyInfoInputs.cache
+E:\DoAnTotNghiep\BackEnd\BookingTicket.Domain\obj\Debug\net8.0\BookingTicket.Domain.AssemblyInfo.cs
+E:\DoAnTotNghiep\BackEnd\BookingTicket.Domain\obj\Debug\net8.0\BookingTicket.Domain.csproj.CoreCompileInputs.cache
+E:\DoAnTotNghiep\BackEnd\BookingTicket.Domain\obj\Debug\net8.0\BookingTicket.Domain.dll
+E:\DoAnTotNghiep\BackEnd\BookingTicket.Domain\obj\Debug\net8.0\refint\BookingTicket.Domain.dll
+E:\DoAnTotNghiep\BackEnd\BookingTicket.Domain\obj\Debug\net8.0\BookingTicket.Domain.pdb
+E:\DoAnTotNghiep\BackEnd\BookingTicket.Domain\obj\Debug\net8.0\ref\BookingTicket.Domain.dll

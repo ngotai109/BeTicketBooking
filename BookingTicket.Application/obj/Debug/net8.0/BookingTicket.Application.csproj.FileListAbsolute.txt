@@ -1,0 +1,15 @@
+E:\DoAnTotNghiep\BackEnd\BookingTicket.Application\bin\Debug\net8.0\BookingTicket.Application.deps.json
+E:\DoAnTotNghiep\BackEnd\BookingTicket.Application\bin\Debug\net8.0\BookingTicket.Application.dll
+E:\DoAnTotNghiep\BackEnd\BookingTicket.Application\bin\Debug\net8.0\BookingTicket.Application.pdb
+E:\DoAnTotNghiep\BackEnd\BookingTicket.Application\bin\Debug\net8.0\BookingTicket.Domain.dll
+E:\DoAnTotNghiep\BackEnd\BookingTicket.Application\bin\Debug\net8.0\BookingTicket.Domain.pdb
+E:\DoAnTotNghiep\BackEnd\BookingTicket.Application\obj\Debug\net8.0\BookingTicket.Application.csproj.AssemblyReference.cache
+E:\DoAnTotNghiep\BackEnd\BookingTicket.Application\obj\Debug\net8.0\BookingTicket.Application.GeneratedMSBuildEditorConfig.editorconfig
+E:\DoAnTotNghiep\BackEnd\BookingTicket.Application\obj\Debug\net8.0\BookingTicket.Application.AssemblyInfoInputs.cache
+E:\DoAnTotNghiep\BackEnd\BookingTicket.Application\obj\Debug\net8.0\BookingTicket.Application.AssemblyInfo.cs
+E:\DoAnTotNghiep\BackEnd\BookingTicket.Application\obj\Debug\net8.0\BookingTicket.Application.csproj.CoreCompileInputs.cache
+E:\DoAnTotNghiep\BackEnd\BookingTicket.Application\obj\Debug\net8.0\BookingT.5DC1D009.Up2Date
+E:\DoAnTotNghiep\BackEnd\BookingTicket.Application\obj\Debug\net8.0\BookingTicket.Application.dll
+E:\DoAnTotNghiep\BackEnd\BookingTicket.Application\obj\Debug\net8.0\refint\BookingTicket.Application.dll
+E:\DoAnTotNghiep\BackEnd\BookingTicket.Application\obj\Debug\net8.0\BookingTicket.Application.pdb
+E:\DoAnTotNghiep\BackEnd\BookingTicket.Application\obj\Debug\net8.0\ref\BookingTicket.Application.dll
