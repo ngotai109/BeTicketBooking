@@ -13,3 +13,4 @@ E:\DoAnTotNghiep\BackEnd\BookingTicket.Application\obj\Debug\net8.0\BookingTicke
 E:\DoAnTotNghiep\BackEnd\BookingTicket.Application\obj\Debug\net8.0\refint\BookingTicket.Application.dll
 E:\DoAnTotNghiep\BackEnd\BookingTicket.Application\obj\Debug\net8.0\BookingTicket.Application.pdb
 E:\DoAnTotNghiep\BackEnd\BookingTicket.Application\obj\Debug\net8.0\ref\BookingTicket.Application.dll
+E:\DoAnTotNghiep\BackEnd\BookingTicket.Application\obj\Debug\net8.0\BookingTicket.Application.sourcelink.json

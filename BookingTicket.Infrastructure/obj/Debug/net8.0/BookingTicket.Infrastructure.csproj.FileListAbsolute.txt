@@ -15,3 +15,4 @@ E:\DoAnTotNghiep\BackEnd\BookingTicket.Infrastructure\obj\Debug\net8.0\BookingTi
 E:\DoAnTotNghiep\BackEnd\BookingTicket.Infrastructure\obj\Debug\net8.0\refint\BookingTicket.Infrastructure.dll
 E:\DoAnTotNghiep\BackEnd\BookingTicket.Infrastructure\obj\Debug\net8.0\BookingTicket.Infrastructure.pdb
 E:\DoAnTotNghiep\BackEnd\BookingTicket.Infrastructure\obj\Debug\net8.0\ref\BookingTicket.Infrastructure.dll
+E:\DoAnTotNghiep\BackEnd\BookingTicket.Infrastructure\obj\Debug\net8.0\BookingTicket.Infrastructure.sourcelink.json
