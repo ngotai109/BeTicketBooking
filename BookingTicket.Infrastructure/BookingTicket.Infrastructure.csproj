@@ -7,32 +7,22 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="DTOs\" />
-    <Folder Include="Interfaces\" />
-    <Folder Include="Common\" />
-    <Folder Include="Mappings\" />
-    <Folder Include="Exceptions\" />
-<<<<<<< HEAD
-    <Folder Include="Mappings\" />
-    <Folder Include="Validators\" />
-    <Folder Include="Validators\" />
-=======
->>>>>>> 4aaf86c (update code fun login)
-    <Folder Include="Services\" />
+    <ProjectReference Include="..\BookingTicket.Application\BookingTicket.Application.csproj" />
+    <ProjectReference Include="..\BookingTicket.Domain\BookingTicket.Domain.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Identity\" />
+    <Folder Include="Service\" />
+    <Folder Include="Repositories\" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="FluentValidation" Version="12.1.1" />
-    <PackageReference Include="FluentValidation.AspNetCore" Version="11.3.1" />
-    <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="12.0.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.20" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="8.0.20" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.20" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.20" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\BookingTicket.Domain\BookingTicket.Domain.csproj" />
   </ItemGroup>
 
 </Project>
