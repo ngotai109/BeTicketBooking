@@ -14,7 +14,11 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("BookingTicket.API")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
+<<<<<<< HEAD
 [assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+5df6df371f1455c27c49dc20061db4d8bafa5421")]
+=======
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+4aaf86cb4eb55cec3ea82a540cbe60bc54d553cf")]
+>>>>>>> 70cc76f (upload some function of login)
 [assembly: System.Reflection.AssemblyProductAttribute("BookingTicket.API")]
 [assembly: System.Reflection.AssemblyTitleAttribute("BookingTicket.API")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

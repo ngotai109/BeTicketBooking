@@ -1,4 +1,5 @@
 using System.IdentityModel.Tokens.Jwt;
+using System.Net.WebSockets;
 using System.Security.Claims;
 using System.Text;
 using BookingTicket.Application.DTOs.Auth;
@@ -38,6 +39,27 @@ namespace BookingTicket.Application.Services
                 return null;
 
             var roles = await _userManager.GetRolesAsync(user);
+            var tokenString = await GenerateJwtTokenAsync(user);
+         
+             var duration = double.TryParse(
+                _configuration["Jwt:DurationInMinutes"],
+                out var minutes
+            ) ? minutes : 60;
+
+            return new LoginResponseDto
+            {
+                userId = user.Id,
+                Token = tokenString,
+                Expiration = DateTime.UtcNow.AddMinutes(duration),
+                Email = user.Email ?? string.Empty,
+                FullName = user.FullName ?? string.Empty,
+                Roles = roles.ToList()
+            };
+        }
+    
+        public async Task<string> GenerateJwtTokenAsync(ApplicationUser user)
+        {
+            var roles = await _userManager.GetRolesAsync(user);
 
             var claims = new List<Claim>
             {
@@ -69,14 +91,14 @@ namespace BookingTicket.Application.Services
                 expires: DateTime.UtcNow.AddMinutes(duration),
                 signingCredentials: creds
             );
-            return new LoginResponseDto
-            {
-                Token = new JwtSecurityTokenHandler().WriteToken(token),
-                Expiration = token.ValidTo,
-                Email = user.Email ?? string.Empty,
-                FullName = user.FullName ?? string.Empty,
-                Roles = roles.ToList()
-            };
+
+            return new JwtSecurityTokenHandler().WriteToken(token);
+        }
+    
+        public async Task<ApplicationUser> GetUserByIdAsync(string userId)
+        {
+            var user = await _userManager.FindByIdAsync(userId);
+            return user!;
         }
     }
 }

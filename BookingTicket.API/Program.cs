@@ -10,10 +10,10 @@ using BookingTicket.Infrastructure.Data.SeedData;
 using BookingTicket.Application.Interfaces;
 using BookingTicket.Application.Services;
 using BookingTicket.Application.Validators.Auth;
+using BookingTicket.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 
-#region Controllers + FluentValidation
 builder.Services
     .AddControllers()
     .AddFluentValidation(config =>
@@ -23,7 +23,6 @@ builder.Services
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-#endregion
 
 #region Database
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
@@ -39,6 +38,9 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
 
 #region Dependency Injection
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IRefreshTokenService,RefreshTokenService>();
+builder.Services.AddInfrastructure();
+builder.Services.AddScoped<IApplicationDbContext>(provider => provider.GetRequiredService<ApplicationDbContext>());
 #endregion
 
 #region JWT Authentication
@@ -99,7 +101,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
+    
 app.UseCors("AllowReactApp");
 
 app.UseAuthentication();

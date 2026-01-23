@@ -7,11 +7,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="DTOs\" />
-    <Folder Include="Interfaces\" />
     <Folder Include="Common\" />
     <Folder Include="Mappings\" />
     <Folder Include="Exceptions\" />
+<<<<<<< HEAD
 <<<<<<< HEAD
     <Folder Include="Mappings\" />
     <Folder Include="Validators\" />
@@ -19,6 +18,8 @@
 =======
 >>>>>>> 4aaf86c (update code fun login)
     <Folder Include="Services\" />
+=======
+>>>>>>> 70cc76f (upload some function of login)
   </ItemGroup>
 
   <ItemGroup>
