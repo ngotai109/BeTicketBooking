@@ -31,7 +31,7 @@ namespace BookingTicket.API.Controllers
 
             if (result == null)
             {
-                return Unauthorized(new { message = "Email hoặc mật khẩu không chính xác." });
+                return Unauthorized(new { message = "The Email or Password in correct " });
             }
 
             return Ok(result);
@@ -47,14 +47,14 @@ namespace BookingTicket.API.Controllers
             var user = await _refreshTokenService.GetUserByRefreshTokenAsync(request.RefreshToken);
             if(user == null)
             {
-                return Unauthorized(new { message = "Refresh Token không hợp lệ hoặc đã hết hạn." });
+                return Unauthorized(new { message = "The refresh token is invalid or has expired" });
             }
 
             var isValid = await _refreshTokenService.ValidateAsync(user, request.RefreshToken);
 
             if (!isValid)
             {   
-                return Unauthorized(new { message = "Refresh Token không hợp lệ " });
+                return Unauthorized(new { message = "Refresh Token has expried " });
             }
             await _refreshTokenService.RevokeAsync(user);
             var newAccessToken = await _authService.GenerateJwtTokenAsync(user); 
@@ -78,12 +78,12 @@ namespace BookingTicket.API.Controllers
             var user = await _refreshTokenService.GetUserByRefreshTokenAsync(request.RefreshToken);
             if (user == null)
             {
-                return NotFound(new { message = "Refresh Token không hợp lệ hoặc đã hết hạn." });
+                return NotFound(new { message = "The Refresh Token is invalid or has expired." });
             }
 
             await _refreshTokenService.RevokeAsync(user);
 
-            return Ok(new { message = "Revoke refresh token thành công" });
+            return Ok(new { message = "Revoke refresh token Sucessfull" });
         }
 
     }

@@ -9,11 +9,11 @@ namespace BookingTicket.Application.Validators.Auth
         public LoginRequestValidator()
         {
             RuleFor(x => x.Email)
-                .NotEmpty().WithMessage("Email is required.")
-                .EmailAddress().WithMessage("Invalid email format.");
+                .NotEmpty().WithMessage("Email must not be empty.")
+                .EmailAddress().WithMessage("Email must be a valid email address.");
 
             RuleFor(x => x.Password)
-                .NotEmpty().WithMessage("Password is required.")
+                .NotEmpty().WithMessage("Password must not be empty.")
                 .MinimumLength(6)
                 .WithMessage("Password must be at least 6 characters long.");
         }

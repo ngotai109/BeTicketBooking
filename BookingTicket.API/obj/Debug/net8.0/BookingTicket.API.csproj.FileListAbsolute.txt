@@ -165,7 +165,9 @@ E:\DoAnTotNghiep\BackEnd\BookingTicket.API\obj\Debug\net8.0\staticwebassets.buil
 E:\DoAnTotNghiep\BackEnd\BookingTicket.API\obj\Debug\net8.0\staticwebassets.build.json.cache
 E:\DoAnTotNghiep\BackEnd\BookingTicket.API\obj\Debug\net8.0\staticwebassets.development.json
 E:\DoAnTotNghiep\BackEnd\BookingTicket.API\obj\Debug\net8.0\staticwebassets.build.endpoints.json
-E:\DoAnTotNghiep\BackEnd\BookingTicket.API\obj\Debug\net8.0\staticwebassets.upToDateCheck.txt
 E:\DoAnTotNghiep\BackEnd\BookingTicket.API\obj\Debug\net8.0\BookingT.031B4006.Up2Date
 E:\DoAnTotNghiep\BackEnd\BookingTicket.API\obj\Debug\net8.0\BookingTicket.API.genruntimeconfig.cache
 E:\DoAnTotNghiep\BackEnd\BookingTicket.API\obj\Debug\net8.0\ref\BookingTicket.API.dll
+E:\DoAnTotNghiep\BackEnd\BookingTicket.API\bin\Debug\net8.0\AutoMapper.dll
+E:\DoAnTotNghiep\BackEnd\BookingTicket.API\bin\Debug\net8.0\AutoMapper.Extensions.Microsoft.DependencyInjection.dll
+E:\DoAnTotNghiep\BackEnd\BookingTicket.API\obj\Debug\net8.0\staticwebassets.upToDateCheck.txt
