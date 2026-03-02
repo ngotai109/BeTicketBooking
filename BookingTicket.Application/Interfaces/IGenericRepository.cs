@@ -8,11 +8,11 @@ namespace BookingTicket.Application.Interfaces
 {
     public interface IGenericRepository<T> where T : class
     {
-        Task<T?> GetByIdAsync(object id);
+        Task<T?> GetByIdAsync(int id);
         Task<IEnumerable<T>> GetAllAsync();
         Task AddAsync(T entity);
-        void Update(T entity);
-        void Delete(T entity);
+        Task UpdateAsync(T entity);
+        Task DeleteAsync(T entity);
         Task<bool> ExistsAsync(Expression<Func<T, bool>> predicate);
     }
 }

@@ -1,5 +1,4 @@
 using System.IdentityModel.Tokens.Jwt;
-using System.Net.WebSockets;
 using System.Security.Claims;
 using System.Text;
 using BookingTicket.Application.DTOs.Auth;
@@ -8,6 +7,11 @@ using BookingTicket.Domain.Entities;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
+using System.Threading.Tasks;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
 
 namespace BookingTicket.Application.Services
 {
@@ -15,18 +19,20 @@ namespace BookingTicket.Application.Services
     {
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IConfiguration _configuration;
+        private readonly IRefreshTokenService _refreshTokenService;
 
         public AuthService(
             UserManager<ApplicationUser> userManager,
-            IConfiguration configuration)
+            IConfiguration configuration,
+            IRefreshTokenService refreshTokenService) 
         {
             _userManager = userManager;
             _configuration = configuration;
+            _refreshTokenService = refreshTokenService; 
         }
 
         public async Task<LoginResponseDto?> LoginAsync(LoginRequestDto request)
         {
- 
             var user = await _userManager.FindByEmailAsync(request.Email);
             if (user == null)
                 return null;
@@ -40,8 +46,9 @@ namespace BookingTicket.Application.Services
 
             var roles = await _userManager.GetRolesAsync(user);
             var tokenString = await GenerateJwtTokenAsync(user);
-         
-             var duration = double.TryParse(
+            var refreshTokenString = await _refreshTokenService.GenerateAndSaveAsync(user);
+
+            var duration = double.TryParse(
                 _configuration["Jwt:DurationInMinutes"],
                 out var minutes
             ) ? minutes : 60;
@@ -50,13 +57,14 @@ namespace BookingTicket.Application.Services
             {
                 userId = user.Id,
                 Token = tokenString,
+                RefreshToken = refreshTokenString,
                 Expiration = DateTime.UtcNow.AddMinutes(duration),
                 Email = user.Email ?? string.Empty,
                 FullName = user.FullName ?? string.Empty,
                 Roles = roles.ToList()
             };
         }
-    
+
         public async Task<string> GenerateJwtTokenAsync(ApplicationUser user)
         {
             var roles = await _userManager.GetRolesAsync(user);
@@ -91,10 +99,9 @@ namespace BookingTicket.Application.Services
                 expires: DateTime.UtcNow.AddMinutes(duration),
                 signingCredentials: creds
             );
-
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
-    
+
         public async Task<ApplicationUser> GetUserByIdAsync(string userId)
         {
             var user = await _userManager.FindByIdAsync(userId);

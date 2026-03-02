@@ -13,6 +13,7 @@ namespace BookingTicket.Infrastructure.Data
         {
         }
 
+        public DbSet<Locations> Locations { get; set; }
         public DbSet<Buses> Buses { get; set; }
         public DbSet<Routes> Routes { get; set; }
         public DbSet<Trips> Trips { get; set; }

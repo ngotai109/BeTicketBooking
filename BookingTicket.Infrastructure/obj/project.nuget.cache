@@ -1,9 +1,11 @@
 {
   "version": 2,
-  "dgSpecHash": "DqMtJsMKbb4=",
+  "dgSpecHash": "zc4Csmw9INw=",
   "success": true,
   "projectFilePath": "E:\\DoAnTotNghiep\\BackEnd\\BookingTicket.Infrastructure\\BookingTicket.Infrastructure.csproj",
   "expectedPackageFiles": [
+    "C:\\Users\\DELL 5625\\.nuget\\packages\\automapper\\12.0.1\\automapper.12.0.1.nupkg.sha512",
+    "C:\\Users\\DELL 5625\\.nuget\\packages\\automapper.extensions.microsoft.dependencyinjection\\12.0.1\\automapper.extensions.microsoft.dependencyinjection.12.0.1.nupkg.sha512",
     "C:\\Users\\DELL 5625\\.nuget\\packages\\azure.core\\1.38.0\\azure.core.1.38.0.nupkg.sha512",
     "C:\\Users\\DELL 5625\\.nuget\\packages\\azure.identity\\1.11.4\\azure.identity.1.11.4.nupkg.sha512",
     "C:\\Users\\DELL 5625\\.nuget\\packages\\fluentvalidation\\12.1.1\\fluentvalidation.12.1.1.nupkg.sha512",
@@ -14,6 +16,7 @@
     "C:\\Users\\DELL 5625\\.nuget\\packages\\microsoft.aspnetcore.cryptography.keyderivation\\10.0.1\\microsoft.aspnetcore.cryptography.keyderivation.10.0.1.nupkg.sha512",
     "C:\\Users\\DELL 5625\\.nuget\\packages\\microsoft.aspnetcore.identity.entityframeworkcore\\8.0.20\\microsoft.aspnetcore.identity.entityframeworkcore.8.0.20.nupkg.sha512",
     "C:\\Users\\DELL 5625\\.nuget\\packages\\microsoft.bcl.asyncinterfaces\\1.1.1\\microsoft.bcl.asyncinterfaces.1.1.1.nupkg.sha512",
+    "C:\\Users\\DELL 5625\\.nuget\\packages\\microsoft.csharp\\4.7.0\\microsoft.csharp.4.7.0.nupkg.sha512",
     "C:\\Users\\DELL 5625\\.nuget\\packages\\microsoft.data.sqlclient\\5.1.6\\microsoft.data.sqlclient.5.1.6.nupkg.sha512",
     "C:\\Users\\DELL 5625\\.nuget\\packages\\microsoft.data.sqlclient.sni.runtime\\5.1.1\\microsoft.data.sqlclient.sni.runtime.5.1.1.nupkg.sha512",
     "C:\\Users\\DELL 5625\\.nuget\\packages\\microsoft.entityframeworkcore\\8.0.20\\microsoft.entityframeworkcore.8.0.20.nupkg.sha512",

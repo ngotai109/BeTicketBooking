@@ -158,10 +158,20 @@ namespace BookingTicket.Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("LocationId"));
 
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<byte>("Level")
+                        .HasColumnType("tinyint");
+
                     b.Property<string>("LocationName")
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
+
+                    b.Property<int?>("ParentLocationId")
+                        .IsRequired()
+                        .HasColumnType("int");
 
                     b.HasKey("LocationId");
 
@@ -234,8 +244,22 @@ namespace BookingTicket.Infrastructure.Migrations
                     b.Property<int>("ArrivalLocationId")
                         .HasColumnType("int");
 
+                    b.Property<decimal>("BasePrice")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
                     b.Property<int>("DepartureLocationId")
                         .HasColumnType("int");
+
+                    b.Property<decimal>("DistanceKm")
+                        .HasPrecision(10, 2)
+                        .HasColumnType("decimal(10,2)");
+
+                    b.Property<int>("EstimatedTimeHours")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
 
                     b.Property<string>("RouteName")
                         .IsRequired()

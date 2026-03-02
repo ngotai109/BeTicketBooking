@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace BookingTicket.Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class initDB : Migration
+    public partial class InitialCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -74,7 +74,10 @@ namespace BookingTicket.Infrastructure.Migrations
                 {
                     LocationId = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    LocationName = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false)
+                    LocationName = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    Level = table.Column<byte>(type: "tinyint", nullable: false),
+                    ParentLocationId = table.Column<int>(type: "int", nullable: false),
+                    IsActive = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -250,7 +253,11 @@ namespace BookingTicket.Infrastructure.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     RouteName = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
                     DepartureLocationId = table.Column<int>(type: "int", nullable: false),
-                    ArrivalLocationId = table.Column<int>(type: "int", nullable: false)
+                    ArrivalLocationId = table.Column<int>(type: "int", nullable: false),
+                    BasePrice = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
+                    DistanceKm = table.Column<decimal>(type: "decimal(10,2)", precision: 10, scale: 2, nullable: false),
+                    EstimatedTimeHours = table.Column<int>(type: "int", nullable: false),
+                    IsActive = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
                 {
