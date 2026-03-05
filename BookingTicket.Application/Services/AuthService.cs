@@ -101,7 +101,6 @@ namespace BookingTicket.Application.Services
             );
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
-
         public async Task<ApplicationUser> GetUserByIdAsync(string userId)
         {
             var user = await _userManager.FindByIdAsync(userId);
