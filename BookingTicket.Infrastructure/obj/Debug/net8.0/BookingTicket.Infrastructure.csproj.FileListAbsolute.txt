@@ -10,9 +10,9 @@ E:\DoAnTotNghiep\BackEnd\BookingTicket.Infrastructure\obj\Debug\net8.0\BookingTi
 E:\DoAnTotNghiep\BackEnd\BookingTicket.Infrastructure\obj\Debug\net8.0\BookingTicket.Infrastructure.AssemblyInfoInputs.cache
 E:\DoAnTotNghiep\BackEnd\BookingTicket.Infrastructure\obj\Debug\net8.0\BookingTicket.Infrastructure.AssemblyInfo.cs
 E:\DoAnTotNghiep\BackEnd\BookingTicket.Infrastructure\obj\Debug\net8.0\BookingTicket.Infrastructure.csproj.CoreCompileInputs.cache
+E:\DoAnTotNghiep\BackEnd\BookingTicket.Infrastructure\obj\Debug\net8.0\BookingTicket.Infrastructure.sourcelink.json
 E:\DoAnTotNghiep\BackEnd\BookingTicket.Infrastructure\obj\Debug\net8.0\BookingT.7A687E59.Up2Date
 E:\DoAnTotNghiep\BackEnd\BookingTicket.Infrastructure\obj\Debug\net8.0\BookingTicket.Infrastructure.dll
 E:\DoAnTotNghiep\BackEnd\BookingTicket.Infrastructure\obj\Debug\net8.0\refint\BookingTicket.Infrastructure.dll
 E:\DoAnTotNghiep\BackEnd\BookingTicket.Infrastructure\obj\Debug\net8.0\BookingTicket.Infrastructure.pdb
 E:\DoAnTotNghiep\BackEnd\BookingTicket.Infrastructure\obj\Debug\net8.0\ref\BookingTicket.Infrastructure.dll
-E:\DoAnTotNghiep\BackEnd\BookingTicket.Infrastructure\obj\Debug\net8.0\BookingTicket.Infrastructure.sourcelink.json

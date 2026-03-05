@@ -6,8 +6,8 @@ E:\DoAnTotNghiep\BackEnd\BookingTicket.Domain\obj\Debug\net8.0\BookingTicket.Dom
 E:\DoAnTotNghiep\BackEnd\BookingTicket.Domain\obj\Debug\net8.0\BookingTicket.Domain.AssemblyInfoInputs.cache
 E:\DoAnTotNghiep\BackEnd\BookingTicket.Domain\obj\Debug\net8.0\BookingTicket.Domain.AssemblyInfo.cs
 E:\DoAnTotNghiep\BackEnd\BookingTicket.Domain\obj\Debug\net8.0\BookingTicket.Domain.csproj.CoreCompileInputs.cache
+E:\DoAnTotNghiep\BackEnd\BookingTicket.Domain\obj\Debug\net8.0\BookingTicket.Domain.sourcelink.json
 E:\DoAnTotNghiep\BackEnd\BookingTicket.Domain\obj\Debug\net8.0\BookingTicket.Domain.dll
 E:\DoAnTotNghiep\BackEnd\BookingTicket.Domain\obj\Debug\net8.0\refint\BookingTicket.Domain.dll
 E:\DoAnTotNghiep\BackEnd\BookingTicket.Domain\obj\Debug\net8.0\BookingTicket.Domain.pdb
 E:\DoAnTotNghiep\BackEnd\BookingTicket.Domain\obj\Debug\net8.0\ref\BookingTicket.Domain.dll
-E:\DoAnTotNghiep\BackEnd\BookingTicket.Domain\obj\Debug\net8.0\BookingTicket.Domain.sourcelink.json
