@@ -15,10 +15,14 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
 <<<<<<< HEAD
+<<<<<<< HEAD
 [assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+21fa7f344ddaebeed463ab8f6a9a8afeba4b3eb4")]
 =======
 [assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+440be6c369d8f4d518426ad576bb3ee6051edd27")]
 >>>>>>> 201c4e6 (warn)
+=======
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+201c4e63a29104f6a4f85ec898a21bf0785d0894")]
+>>>>>>> 48a0236 (add)
 [assembly: System.Reflection.AssemblyProductAttribute("BookingTicket.Application")]
 [assembly: System.Reflection.AssemblyTitleAttribute("BookingTicket.Application")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
