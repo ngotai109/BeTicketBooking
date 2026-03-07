@@ -17,6 +17,7 @@ using System.Reflection;
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 [assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+21fa7f344ddaebeed463ab8f6a9a8afeba4b3eb4")]
 =======
 [assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+440be6c369d8f4d518426ad576bb3ee6051edd27")]
@@ -27,6 +28,9 @@ using System.Reflection;
 =======
 [assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+48a0236e4ef838bbee5a5aac0e9d831531d1079a")]
 >>>>>>> 1e8a3ed (fix)
+=======
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+1e8a3eded77e41f70be324c95b29353b1e5b45af")]
+>>>>>>> 462e3f5 (add)
 [assembly: System.Reflection.AssemblyProductAttribute("BookingTicket.API")]
 [assembly: System.Reflection.AssemblyTitleAttribute("BookingTicket.API")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
