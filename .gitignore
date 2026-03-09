@@ -1,47 +1,47 @@
-## Build results
+# Build
 [Bb]in/
 [Oo]bj/
 
-## Visual Studio
+# Visual Studio
 .vs/
+.vscode/
 *.user
 *.suo
 *.userosscache
 *.sln.docstates
 
-## Rider / ReSharper
+# Rider / ReSharper
 .idea/
 _ReSharper*/
 *.DotSettings.user
 
-## NuGet
+# NuGet
 packages/
 *.nupkg
 *.snupkg
-project.lock.json
-project.fragment.lock.json
-artifacts/
 
-## Logs
+# Logs
 *.log
 build_api_log.txt
 build_output.txt
 msbuild.log
 
-## Backup & cache
-*.pidb
-*.svclog
-*.pdb
-*.obj
+# Cache / temp
+*.cache
 *.tmp
 *.temp
 
-## Publish output
+# Debug / build artifacts
+*.pdb
+*.dll
+*.exe
+
+# Publish
 **/publish/
 
-## ASP.NET specific
+# ASP.NET
 App_Data/
 
-## User-specific config / secrets (tùy chọn, bạn có thể bỏ nếu muốn commit)
-login.json
-
+# OS
+.DS_Store
+Thumbs.db
