@@ -3,13 +3,15 @@ using BookingTicket.Infrastructure.Data;
 using Microsoft.AspNetCore.Identity;
 using BookingTicket.Domain.Entities;
 using BookingTicket.Infrastructure.Data.SeedData;
+using BookingTicket.Application;
+using BookingTicket.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-
+builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(
         builder.Configuration.GetConnectionString("DefaultConnection")));
@@ -18,6 +20,10 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
     .AddEntityFrameworkStores<ApplicationDbContext>()
     .AddDefaultTokenProviders();
+
+// Đăng ký Application và Infrastructure services
+builder.Services.AddApplication();
+builder.Services.AddInfrastructure();
 
 builder.Services.AddCors(options =>
 {

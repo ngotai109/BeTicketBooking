@@ -1,17 +1,22 @@
 ﻿using BookingTicket.Domain.Entities;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity;
+using BookingTicket.Application.Interfaces;
 
 namespace BookingTicket.Infrastructure.Data
 {
-    public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
+    public class ApplicationDbContext : IdentityDbContext<ApplicationUser>, IApplicationDbContext
     {
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
             : base(options)
         {
         }
 
-        // ---------- DbSet ----------
+        // Implement IApplicationDbContext
+        public DbSet<IdentityUserToken<string>> UserTokens => Set<IdentityUserToken<string>>();
+
+        public DbSet<Locations> Locations { get; set; }
         public DbSet<Buses> Buses { get; set; }
         public DbSet<Routes> Routes { get; set; }
         public DbSet<Trips> Trips { get; set; }

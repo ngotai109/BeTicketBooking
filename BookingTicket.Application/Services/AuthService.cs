@@ -1,16 +1,17 @@
-
-using System;
-using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using System.Threading.Tasks;
 using BookingTicket.Application.DTOs.Auth;
 using BookingTicket.Application.Interfaces;
 using BookingTicket.Domain.Entities;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
+using System.Threading.Tasks;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
 
 namespace BookingTicket.Application.Services
 {
@@ -18,65 +19,92 @@ namespace BookingTicket.Application.Services
     {
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IConfiguration _configuration;
+        private readonly IRefreshTokenService _refreshTokenService;
 
-        public AuthService(UserManager<ApplicationUser> userManager, IConfiguration configuration)
+        public AuthService(
+            UserManager<ApplicationUser> userManager,
+            IConfiguration configuration,
+            IRefreshTokenService refreshTokenService) 
         {
             _userManager = userManager;
             _configuration = configuration;
+            _refreshTokenService = refreshTokenService; 
         }
 
         public async Task<LoginResponseDto?> LoginAsync(LoginRequestDto request)
         {
-            // 1. Tìm user theo Email
             var user = await _userManager.FindByEmailAsync(request.Email);
             if (user == null)
-            {
                 return null;
-            }
 
-            // 2. Kiểm tra mật khẩu
-            var result = await _userManager.CheckPasswordAsync(user, request.Password);
-            if (!result)
-            {
+            if (await _userManager.IsLockedOutAsync(user))
                 return null;
-            }
 
-            // 3. Lấy Roles của User
-            var userRoles = await _userManager.GetRolesAsync(user);
+            var isPasswordValid = await _userManager.CheckPasswordAsync(user, request.Password);
+            if (!isPasswordValid)
+                return null;
 
-            // 4. Tạo Claims cho Token
-            var authClaims = new List<Claim>
+            var roles = await _userManager.GetRolesAsync(user);
+            var tokenString = await GenerateJwtTokenAsync(user);
+            var refreshTokenString = await _refreshTokenService.GenerateAndSaveAsync(user);
+
+            var duration = double.TryParse(
+                _configuration["Jwt:DurationInMinutes"],
+                out var minutes
+            ) ? minutes : 60;
+
+            return new LoginResponseDto
             {
-                new Claim(ClaimTypes.Name, user.UserName ?? ""),
-                new Claim(ClaimTypes.Email, user.Email ?? ""),
-                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                new Claim("UserId", user.Id)
+                userId = user.Id,
+                Token = tokenString,
+                RefreshToken = refreshTokenString,
+                Expiration = DateTime.UtcNow.AddMinutes(duration),
+                Email = user.Email ?? string.Empty,
+                FullName = user.FullName ?? string.Empty,
+                Roles = roles.ToList()
+            };
+        }
+
+        public async Task<string> GenerateJwtTokenAsync(ApplicationUser user)
+        {
+            var roles = await _userManager.GetRolesAsync(user);
+
+            var claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.NameIdentifier, user.Id),
+                new Claim(ClaimTypes.Name, user.UserName ?? string.Empty),
+                new Claim(ClaimTypes.Email, user.Email ?? string.Empty),
+                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
             };
 
-            foreach (var role in userRoles)
+            foreach (var role in roles)
             {
-                authClaims.Add(new Claim(ClaimTypes.Role, role));
+                claims.Add(new Claim(ClaimTypes.Role, role));
             }
+            var key = new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]!)
+            );
 
-            // 5. Tạo JWT Token
-            var authSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"] ?? "SecretKeyDoAnTotNghiepBookingTicket2025"));
+            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+            var duration = double.TryParse(
+                _configuration["Jwt:DurationInMinutes"],
+                out var minutes
+            ) ? minutes : 60;
 
             var token = new JwtSecurityToken(
                 issuer: _configuration["Jwt:Issuer"],
                 audience: _configuration["Jwt:Audience"],
-                expires: DateTime.Now.AddHours(3),
-                claims: authClaims,
-                signingCredentials: new SigningCredentials(authSigningKey, SecurityAlgorithms.HmacSha256)
+                claims: claims,
+                expires: DateTime.UtcNow.AddMinutes(duration),
+                signingCredentials: creds
             );
-
-            return new LoginResponseDto
-            {
-                Token = new JwtSecurityTokenHandler().WriteToken(token),
-                Expiration = token.ValidTo,
-                Email = user.Email ?? "",
-                FullName = user.FullName ?? "",
-                Roles = new List<string>(userRoles)
-            };
+            return new JwtSecurityTokenHandler().WriteToken(token);
+        }
+        public async Task<ApplicationUser> GetUserByIdAsync(string userId)
+        {
+            var user = await _userManager.FindByIdAsync(userId);
+            return user!;
         }
     }
 }
