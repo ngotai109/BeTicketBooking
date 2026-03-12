@@ -36,24 +36,20 @@ namespace BookingTicket.Infrastructure.Data.SeedData
             }
             else
             {
-                // Unlock user nếu bị lock
+ 
                 if (await userManager.IsLockedOutAsync(adminUser))
                 {
                     await userManager.SetLockoutEndDateAsync(adminUser, null);
-                }
-                
-                // Reset password nếu user đã tồn tại để đảm bảo password đúng
+                }          
                 var token = await userManager.GeneratePasswordResetTokenAsync(adminUser);
                 var result = await userManager.ResetPasswordAsync(adminUser, token, "Admin@123");
-                
-                // Đảm bảo EmailConfirmed = true
+               
                 if (!adminUser.EmailConfirmed)
                 {
                     adminUser.EmailConfirmed = true;
                     await userManager.UpdateAsync(adminUser);
                 }
-                
-                // Đảm bảo user có role Admin
+  
                 var userRoles = await userManager.GetRolesAsync(adminUser);
                 if (!userRoles.Contains("Admin"))
                 {
