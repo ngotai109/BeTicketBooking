@@ -1,4 +1,4 @@
-﻿using BookingTicket.Application.Interfaces;
+using BookingTicket.Application.Interfaces;
 using BookingTicket.Application.Services;
 using Microsoft.Extensions.DependencyInjection;
 using System;
@@ -14,10 +14,12 @@ namespace BookingTicket.Application
     {
        public static IServiceCollection AddApplication(this IServiceCollection services)
         {
-            services.AddScoped<ILocationService, LocationService>();
+
             services.AddScoped<IRefreshTokenService, RefreshTokenService>();
             services.AddScoped<IRouteServices, RouteService>();
             services.AddScoped<IAuthService, AuthService>();
+            services.AddScoped<IProvinceService, ProvinceService>();
+            services.AddScoped<IWardService, WardService>();
             return services;
         }
     }

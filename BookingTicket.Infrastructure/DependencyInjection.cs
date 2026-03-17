@@ -1,4 +1,4 @@
-﻿using BookingTicket.Application.Interfaces;
+using BookingTicket.Application.Interfaces;
 using BookingTicket.Application.Services;
 using BookingTicket.Infrastructure.Repositories;
 using BookingTicket.Infrastructure.Data;
@@ -15,8 +15,10 @@ namespace BookingTicket.Infrastructure
                 provider.GetRequiredService<ApplicationDbContext>());
             
             services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
-            services.AddScoped<ILocationRepository, LocationRepository>();  
-            services.AddScoped<IRouteRepository,RouteRepository>();  
+
+            services.AddScoped<IRouteRepository, RouteRepository>();
+            services.AddScoped<IProvinceRepository, ProvinceRepository>();
+            services.AddScoped<IWardRepository, WardRepository>();
             return services;
         }   
     }

@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BookingTicket.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260312142754_Initial_Migration")]
-    partial class Initial_Migration
+    [Migration("20260317072032_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -153,33 +153,40 @@ namespace BookingTicket.Infrastructure.Migrations
                     b.ToTable("Buses");
                 });
 
-            modelBuilder.Entity("BookingTicket.Domain.Entities.Locations", b =>
+            modelBuilder.Entity("BookingTicket.Domain.Entities.Office", b =>
                 {
-                    b.Property<int>("LocationId")
+                    b.Property<int>("OfficeId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("LocationId"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("OfficeId"));
+
+                    b.Property<string>("Address")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
-                    b.Property<string>("LocationName")
+                    b.Property<string>("OfficeName")
                         .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
 
-                    b.Property<string>("LocationType")
+                    b.Property<string>("PhoneNumber")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
 
-                    b.Property<int?>("ParentLocationId")
-                        .IsRequired()
+                    b.Property<int>("WardId")
                         .HasColumnType("int");
 
-                    b.HasKey("LocationId");
+                    b.HasKey("OfficeId");
 
-                    b.ToTable("Locations");
+                    b.HasIndex("WardId");
+
+                    b.ToTable("Offices");
                 });
 
             modelBuilder.Entity("BookingTicket.Domain.Entities.PaymentMethods", b =>
@@ -190,9 +197,10 @@ namespace BookingTicket.Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("PaymentMethodId"));
 
-                    b.Property<string>("Paymentype")
+                    b.Property<string>("PaymentType")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
                     b.HasKey("PaymentMethodId");
 
@@ -237,6 +245,27 @@ namespace BookingTicket.Infrastructure.Migrations
                     b.ToTable("Payments");
                 });
 
+            modelBuilder.Entity("BookingTicket.Domain.Entities.Provinces", b =>
+                {
+                    b.Property<int>("ProvinceId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ProvinceId"));
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("ProvinceName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.HasKey("ProvinceId");
+
+                    b.ToTable("Provinces");
+                });
+
             modelBuilder.Entity("BookingTicket.Domain.Entities.Routes", b =>
                 {
                     b.Property<int>("RouteId")
@@ -245,14 +274,14 @@ namespace BookingTicket.Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("RouteId"));
 
-                    b.Property<int>("ArrivalLocationId")
+                    b.Property<int>("ArrivalOfficeId")
                         .HasColumnType("int");
 
                     b.Property<decimal>("BasePrice")
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<int>("DepartureLocationId")
+                    b.Property<int>("DepartureOfficeId")
                         .HasColumnType("int");
 
                     b.Property<decimal>("DistanceKm")
@@ -272,9 +301,9 @@ namespace BookingTicket.Infrastructure.Migrations
 
                     b.HasKey("RouteId");
 
-                    b.HasIndex("ArrivalLocationId");
+                    b.HasIndex("ArrivalOfficeId");
 
-                    b.HasIndex("DepartureLocationId");
+                    b.HasIndex("DepartureOfficeId");
 
                     b.ToTable("Routes");
                 });
@@ -348,6 +377,11 @@ namespace BookingTicket.Infrastructure.Migrations
                     b.Property<int>("RouteId")
                         .HasColumnType("int");
 
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
                     b.HasKey("TripId");
 
                     b.HasIndex("ArrivalTime");
@@ -359,6 +393,31 @@ namespace BookingTicket.Infrastructure.Migrations
                     b.HasIndex("RouteId");
 
                     b.ToTable("Trips");
+                });
+
+            modelBuilder.Entity("BookingTicket.Domain.Entities.Ward", b =>
+                {
+                    b.Property<int>("WardId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("WardId"));
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("ProvinceId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("WardName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("WardId");
+
+                    b.HasIndex("ProvinceId");
+
+                    b.ToTable("Wards");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
@@ -511,9 +570,6 @@ namespace BookingTicket.Infrastructure.Migrations
                     b.Property<decimal>("Price")
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<int?>("SeatsSeatId")
-                        .HasColumnType("int");
-
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -527,8 +583,6 @@ namespace BookingTicket.Infrastructure.Migrations
                     b.HasKey("TicketId");
 
                     b.HasIndex("BookingId");
-
-                    b.HasIndex("SeatsSeatId");
 
                     b.HasIndex("TripSeatId");
 
@@ -546,6 +600,17 @@ namespace BookingTicket.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("BookingTicket.Domain.Entities.Office", b =>
+                {
+                    b.HasOne("BookingTicket.Domain.Entities.Ward", "Ward")
+                        .WithMany("Offices")
+                        .HasForeignKey("WardId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Ward");
                 });
 
             modelBuilder.Entity("BookingTicket.Domain.Entities.Payments", b =>
@@ -573,21 +638,21 @@ namespace BookingTicket.Infrastructure.Migrations
 
             modelBuilder.Entity("BookingTicket.Domain.Entities.Routes", b =>
                 {
-                    b.HasOne("BookingTicket.Domain.Entities.Locations", "ArrivalLocation")
+                    b.HasOne("BookingTicket.Domain.Entities.Office", "ArrivalOffice")
                         .WithMany("ArrivalRoutes")
-                        .HasForeignKey("ArrivalLocationId")
+                        .HasForeignKey("ArrivalOfficeId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("BookingTicket.Domain.Entities.Locations", "DepartureLocation")
+                    b.HasOne("BookingTicket.Domain.Entities.Office", "DepartureOffice")
                         .WithMany("DepartureRoutes")
-                        .HasForeignKey("DepartureLocationId")
+                        .HasForeignKey("DepartureOfficeId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.Navigation("ArrivalLocation");
+                    b.Navigation("ArrivalOffice");
 
-                    b.Navigation("DepartureLocation");
+                    b.Navigation("DepartureOffice");
                 });
 
             modelBuilder.Entity("BookingTicket.Domain.Entities.Seats", b =>
@@ -637,6 +702,17 @@ namespace BookingTicket.Infrastructure.Migrations
                     b.Navigation("Bus");
 
                     b.Navigation("Route");
+                });
+
+            modelBuilder.Entity("BookingTicket.Domain.Entities.Ward", b =>
+                {
+                    b.HasOne("BookingTicket.Domain.Entities.Provinces", "Province")
+                        .WithMany("Wards")
+                        .HasForeignKey("ProvinceId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Province");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -698,10 +774,6 @@ namespace BookingTicket.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("BookingTicket.Domain.Entities.Seats", null)
-                        .WithMany("Tickets")
-                        .HasForeignKey("SeatsSeatId");
-
                     b.HasOne("BookingTicket.Domain.Entities.TripSeats", "TripSeat")
                         .WithMany("Tickets")
                         .HasForeignKey("TripSeatId")
@@ -736,7 +808,7 @@ namespace BookingTicket.Infrastructure.Migrations
                     b.Navigation("Trips");
                 });
 
-            modelBuilder.Entity("BookingTicket.Domain.Entities.Locations", b =>
+            modelBuilder.Entity("BookingTicket.Domain.Entities.Office", b =>
                 {
                     b.Navigation("ArrivalRoutes");
 
@@ -748,6 +820,11 @@ namespace BookingTicket.Infrastructure.Migrations
                     b.Navigation("Payments");
                 });
 
+            modelBuilder.Entity("BookingTicket.Domain.Entities.Provinces", b =>
+                {
+                    b.Navigation("Wards");
+                });
+
             modelBuilder.Entity("BookingTicket.Domain.Entities.Routes", b =>
                 {
                     b.Navigation("Trips");
@@ -755,8 +832,6 @@ namespace BookingTicket.Infrastructure.Migrations
 
             modelBuilder.Entity("BookingTicket.Domain.Entities.Seats", b =>
                 {
-                    b.Navigation("Tickets");
-
                     b.Navigation("TripSeats");
                 });
 
@@ -770,6 +845,11 @@ namespace BookingTicket.Infrastructure.Migrations
                     b.Navigation("Tickets");
 
                     b.Navigation("TripSeats");
+                });
+
+            modelBuilder.Entity("BookingTicket.Domain.Entities.Ward", b =>
+                {
+                    b.Navigation("Offices");
                 });
 #pragma warning restore 612, 618
         }

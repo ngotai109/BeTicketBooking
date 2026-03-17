@@ -1,0 +1,26 @@
+using AutoMapper;
+using BookingTicket.Application.DTOs.Province;
+using BookingTicket.Application.Interfaces;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
+namespace BookingTicket.Application.Services
+{
+    public class WardService : IWardService
+    {
+        private readonly IWardRepository _wardRepository;
+        private readonly IMapper _mapper;
+
+        public WardService(IWardRepository wardRepository, IMapper mapper)
+        {
+            _wardRepository = wardRepository;
+            _mapper = mapper;
+        }
+
+        public async Task<IEnumerable<WardDto>> GetWardsByProvinceIdAsync(int provinceId)
+        {
+            var wards = await _wardRepository.GetWardsByProvinceIdAsync(provinceId);
+            return _mapper.Map<IEnumerable<WardDto>>(wards);
+        }
+    }
+}

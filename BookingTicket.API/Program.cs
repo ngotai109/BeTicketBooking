@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using BookingTicket.Infrastructure.Data;
 using Microsoft.AspNetCore.Identity;
 using BookingTicket.Domain.Entities;
@@ -44,6 +44,9 @@ using (var scope = app.Services.CreateScope())
     var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
 
     await SeedDataRoles.SeedIdentityAsync(userManager, roleManager);
+
+    var context = services.GetRequiredService<ApplicationDbContext>();
+    await SeedLocations.SeedAsync(context);
 }
 
 // Swagger
