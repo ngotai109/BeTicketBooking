@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -19,7 +19,6 @@ namespace BookingTicket.Domain.Entities
         public int BusId { get; set; }
         public Buses Bus { get; set; }
 
-        public ICollection<TripSeats> TripSeats { get; set; }
-        public ICollection<Tickets> Tickets { get; set; }
+        public ICollection<TripSeats> TripSeats { get; set; } = new List<TripSeats>();
     }
 }

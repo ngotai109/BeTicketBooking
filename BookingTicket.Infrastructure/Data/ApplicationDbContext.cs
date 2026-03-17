@@ -1,4 +1,4 @@
-﻿using BookingTicket.Domain.Entities;
+using BookingTicket.Domain.Entities;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
@@ -16,12 +16,19 @@ namespace BookingTicket.Infrastructure.Data
         // Implement IApplicationDbContext
         public DbSet<IdentityUserToken<string>> UserTokens => Set<IdentityUserToken<string>>();
 
-        public DbSet<Locations> Locations { get; set; }
+        // Địa điểm
+        public DbSet<Provinces> Provinces { get; set; }
+        public DbSet<Ward> Wards { get; set; }
+        public DbSet<Office> Offices { get; set; }
+
+        // Xe & Tuyến
         public DbSet<Buses> Buses { get; set; }
         public DbSet<Routes> Routes { get; set; }
         public DbSet<Trips> Trips { get; set; }
         public DbSet<Seats> Seats { get; set; }
         public DbSet<TripSeats> TripSeats { get; set; }
+
+        // Đặt vé & Thanh toán
         public DbSet<Bookings> Bookings { get; set; }
         public DbSet<Tickets> Tickets { get; set; }
         public DbSet<Payments> Payments { get; set; }
@@ -31,32 +38,34 @@ namespace BookingTicket.Infrastructure.Data
         {
             base.OnModelCreating(modelBuilder);
 
+            // ── Provinces → Ward ──────────────────────────────────────────
+            modelBuilder.Entity<Ward>()
+                .HasOne(w => w.Province)
+                .WithMany(p => p.Wards)
+                .HasForeignKey(w => w.ProvinceId)
+                .OnDelete(DeleteBehavior.Restrict);
 
-            modelBuilder.Entity<Bookings>()
-                .Property(b => b.TotalPrice)
-                .HasColumnType("decimal(18,2)");
+            // ── Ward → Office ─────────────────────────────────────────────
+            modelBuilder.Entity<Office>()
+                .HasOne(o => o.Ward)
+                .WithMany(w => w.Offices)
+                .HasForeignKey(o => o.WardId)
+                .OnDelete(DeleteBehavior.Restrict);
 
-            modelBuilder.Entity<Payments>()
-                .Property(p => p.Amount)
-                .HasColumnType("decimal(18,2)");
-
-            modelBuilder.Entity<Tickets>()
-                .Property(t => t.Price)
-                .HasColumnType("decimal(18,2)");
-
+            // ── Office → Routes (điểm đi / điểm đến) ─────────────────────
             modelBuilder.Entity<Routes>()
-                .HasOne(r => r.DepartureLocation)
-                .WithMany(l => l.DepartureRoutes)
-                .HasForeignKey(r => r.DepartureLocationId)
+                .HasOne(r => r.DepartureOffice)
+                .WithMany(o => o.DepartureRoutes)
+                .HasForeignKey(r => r.DepartureOfficeId)
                 .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<Routes>()
-                .HasOne(r => r.ArrivalLocation)
-                .WithMany(l => l.ArrivalRoutes)
-                .HasForeignKey(r => r.ArrivalLocationId)
+                .HasOne(r => r.ArrivalOffice)
+                .WithMany(o => o.ArrivalRoutes)
+                .HasForeignKey(r => r.ArrivalOfficeId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-  
+            // ── Routes → Trips ────────────────────────────────────────────
             modelBuilder.Entity<Trips>()
                 .HasOne(t => t.Route)
                 .WithMany(r => r.Trips)
@@ -75,6 +84,7 @@ namespace BookingTicket.Infrastructure.Data
             modelBuilder.Entity<Trips>()
                 .HasIndex(t => t.ArrivalTime);
 
+            // ── TripSeats ─────────────────────────────────────────────────
             modelBuilder.Entity<TripSeats>()
                 .HasOne(ts => ts.Trip)
                 .WithMany(t => t.TripSeats)
@@ -87,7 +97,11 @@ namespace BookingTicket.Infrastructure.Data
                 .HasForeignKey(ts => ts.SeatId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-     
+            // ── Tickets ───────────────────────────────────────────────────
+            modelBuilder.Entity<Tickets>()
+                .Property(t => t.Price)
+                .HasColumnType("decimal(18,2)");
+
             modelBuilder.Entity<Tickets>()
                 .HasOne(t => t.Booking)
                 .WithMany(b => b.Tickets)
@@ -100,6 +114,15 @@ namespace BookingTicket.Infrastructure.Data
                 .HasForeignKey(t => t.TripSeatId)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            // ── Bookings ──────────────────────────────────────────────────
+            modelBuilder.Entity<Bookings>()
+                .Property(b => b.TotalPrice)
+                .HasColumnType("decimal(18,2)");
+
+            // ── Payments ──────────────────────────────────────────────────
+            modelBuilder.Entity<Payments>()
+                .Property(p => p.Amount)
+                .HasColumnType("decimal(18,2)");
 
             modelBuilder.Entity<Payments>()
                 .HasOne(p => p.Booking)

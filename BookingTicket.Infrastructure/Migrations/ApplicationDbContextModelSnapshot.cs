@@ -161,13 +161,14 @@ namespace BookingTicket.Infrastructure.Migrations
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
-                    b.Property<byte>("Level")
-                        .HasColumnType("tinyint");
-
                     b.Property<string>("LocationName")
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("LocationType")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int?>("ParentLocationId")
                         .IsRequired()

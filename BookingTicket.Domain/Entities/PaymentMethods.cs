@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -12,7 +12,9 @@ namespace BookingTicket.Domain.Entities
         [Key]
         public int PaymentMethodId { set; get; }
 
-        public string Paymentype { set; get; }
+        [Required]
+        [MaxLength(50)]
+        public string PaymentType { get; set; }
 
         public ICollection<Payments> Payments { get; set; }
     }

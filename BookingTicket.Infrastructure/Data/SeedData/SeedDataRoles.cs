@@ -14,9 +14,9 @@ namespace BookingTicket.Infrastructure.Data.SeedData
         {
             var roles = new[] { "Admin","User","Driver","Assistant"};
 
-            foreach(var role in roles)
+            foreach (var role in roles)
             {
-                if(!await roleManager.RoleExistsAsync(role))
+                if (!await roleManager.RoleExistsAsync(role))
                 {
                     await roleManager.CreateAsync(new IdentityRole(role));
                 }
