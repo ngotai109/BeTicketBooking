@@ -1,3 +1,4 @@
+using BookingTicket.Application.DTOs.Province;
 using BookingTicket.Domain.Entities;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -8,5 +9,6 @@ namespace BookingTicket.Application.Interfaces
     {
         Task<IEnumerable<Provinces>> GetAllActiveProvincesAsync();
         Task<Provinces?> GetProvinceWithWardsAsync(int id);
+        Task<Provinces?> ToggleActiveProvinceAsync(int id);
     }
 }

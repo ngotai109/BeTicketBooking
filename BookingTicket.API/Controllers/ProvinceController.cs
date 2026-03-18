@@ -11,12 +11,10 @@ namespace BookingTicket.API.Controllers
     public class ProvinceController : ControllerBase
     {
         private readonly IProvinceService _provinceService;
-        private readonly IWardService _wardService;
 
-        public ProvinceController(IProvinceService provinceService, IWardService wardService)
+        public ProvinceController(IProvinceService provinceService)
         {
             _provinceService = provinceService;
-            _wardService = wardService;
         }
 
         [HttpGet]
@@ -26,11 +24,30 @@ namespace BookingTicket.API.Controllers
             return Ok(provinces);
         }
 
-        [HttpGet("{provinceId}/wards")]
-        public async Task<ActionResult<IEnumerable<WardDto>>> GetWardsByProvince(int provinceId)
+        [HttpGet("{id}")]
+        public async Task<ActionResult<ProvinceDto>> GetById(int id)
         {
-            var wards = await _wardService.GetWardsByProvinceIdAsync(provinceId);
-            return Ok(wards);
+            var province = await _provinceService.GetByIdAsync(id);
+            if (province == null)
+            {
+                return NotFound(new { message = "Không tìm thấy tỉnh/thành phố." });
+            }
+            return Ok(province);
+        }
+
+        [HttpPut("{id}/toggle-active")]
+        public async Task<IActionResult> ToggleActiveProvince(int id)
+        {
+            var result = await _provinceService.ToggleActiveProvinceAsync(id);
+            if (result == null)
+            {
+                return NotFound(new { message = "Không tìm thấy thông tin tỉnh/thành phố." });
+            }
+            return Ok(new 
+            { 
+                message = "Cập nhật trạng thái thành công.", 
+                data = result 
+            });
         }
     }
 }

@@ -8,5 +8,6 @@ namespace BookingTicket.Application.Interfaces
     {
         Task<IEnumerable<ProvinceDto>> GetAllActiveProvincesAsync();
         Task<ProvinceDto?> GetByIdAsync(int id);
+        Task<ProvinceDto?> ToggleActiveProvinceAsync(int id);
     }
 }

@@ -7,5 +7,7 @@ namespace BookingTicket.Application.Interfaces
     public interface IWardService
     {
         Task<IEnumerable<WardDto>> GetWardsByProvinceIdAsync(int provinceId);
+        Task<IEnumerable<WardDto>> GetAllActiveWardsAsync();
+        Task<WardDto?> ToggleActiveWardAsync(int id);
     }
 }

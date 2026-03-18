@@ -17,10 +17,22 @@ namespace BookingTicket.Application.Services
             _mapper = mapper;
         }
 
-        public async Task<IEnumerable<WardDto>> GetWardsByProvinceIdAsync(int provinceId)
+        public async Task <IEnumerable<WardDto>> GetWardsByProvinceIdAsync(int provinceId)
         {
             var wards = await _wardRepository.GetWardsByProvinceIdAsync(provinceId);
             return _mapper.Map<IEnumerable<WardDto>>(wards);
+        }
+        public async Task<IEnumerable<WardDto>> GetAllActiveWardsAsync()
+        {
+            var wards = await _wardRepository.GetAllActiveWardAsync();
+            return _mapper.Map<IEnumerable<WardDto>>(wards);
+
+        }
+        public async Task<WardDto?> ToggleActiveWardAsync(int id)
+        {
+            var ward = await _wardRepository.ToggleActiveWardAsync(id);
+            if (ward == null) return null;
+            return _mapper.Map<WardDto>(ward);
         }
     }
 }

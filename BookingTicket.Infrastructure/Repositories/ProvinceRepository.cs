@@ -1,3 +1,4 @@
+using BookingTicket.Application.DTOs.Province;
 using BookingTicket.Application.Interfaces;
 using BookingTicket.Domain.Entities;
 using BookingTicket.Infrastructure.Data;
@@ -22,6 +23,16 @@ namespace BookingTicket.Infrastructure.Repositories
         public async Task<Provinces?> GetProvinceWithWardsAsync(int id)
         {
             return await _dbSet.Include(p => p.Wards).FirstOrDefaultAsync(p => p.ProvinceId == id);
+        }
+        public async Task<Provinces?> ToggleActiveProvinceAsync(int id)
+        {
+            var province = await _dbSet.FindAsync(id);
+            if(province != null)
+            {
+                province.IsActive = !province.IsActive;
+                await _context.SaveChangesAsync();
+            }
+            return province;
         }
     }
 }

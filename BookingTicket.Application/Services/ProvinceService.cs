@@ -13,7 +13,7 @@ namespace BookingTicket.Application.Services
 
         public ProvinceService(IProvinceRepository provinceRepository, IMapper mapper)
         {
-            _provinceRepository = provinceRepository;
+            _provinceRepository = provinceRepository;   
             _mapper = mapper;
         }
 
@@ -27,6 +27,14 @@ namespace BookingTicket.Application.Services
         {
             var province = await _provinceRepository.GetByIdAsync(id);
             return _mapper.Map<ProvinceDto>(province);
+        }
+
+        public async Task<ProvinceDto?> ToggleActiveProvinceAsync(int id)
+        {
+            var province = await _provinceRepository.ToggleActiveProvinceAsync(id);
+            if (province == null) return null;
+            return _mapper.Map<ProvinceDto>(province);
+        
         }
     }
 }

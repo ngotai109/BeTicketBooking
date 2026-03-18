@@ -19,5 +19,19 @@ namespace BookingTicket.Infrastructure.Repositories
         {
             return await _dbSet.Where(w => w.ProvinceId == provinceId && w.IsActive).ToListAsync();
         }
+        public async Task<IEnumerable<Ward>> GetAllActiveWardAsync()
+        {
+            return await _dbSet.Where(p => p.IsActive).ToListAsync();
+        }
+        public async Task<Ward?> ToggleActiveWardAsync(int id)
+        {
+            var ward = await _dbSet.FindAsync(id);
+            if (ward != null)
+            {
+                ward.IsActive = !ward.IsActive;
+                await _context.SaveChangesAsync();
+            }
+            return ward;
+        }
     }
 }
