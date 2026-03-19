@@ -15,6 +15,10 @@ namespace BookingTicket.Infrastructure.Repositories
         {
         }
 
+        public async Task<IEnumerable<Provinces>> GetAllProvinceAsync()
+        {
+            return await _dbSet.ToListAsync();
+        }
         public async Task<IEnumerable<Provinces>> GetAllActiveProvincesAsync()
         {
             return await _dbSet.Where(p => p.IsActive).ToListAsync();

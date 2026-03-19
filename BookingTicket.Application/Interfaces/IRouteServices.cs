@@ -1,19 +1,17 @@
-﻿using BookingTicket.Application.DTOs.Route;
-using BookingTicket.Domain.Entities;
-using System;
+using BookingTicket.Application.DTOs.Route;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace BookingTicket.Application.Interfaces
 {
     public interface IRouteServices
     {
-        Task<IEnumerable<Routes>> GetAllRouteAsync();
-        Task<Routes?> GetRouteByIdAsync(int idRoute); 
-        Task UpdateRouteAsync(int idRoute, UpdateRouteDto dto);
-        Task CreateRouteAsync(CreateRouteDto dto);
-        Task DeleteRouteAsync(int idRoute);
+        Task<IEnumerable<RouteDto>> GetAllRoutesAsync();
+        Task<IEnumerable<RouteDto>> GetAllActiveRoutesAsync();
+        Task<RouteDto?> GetRouteByIdAsync(int id);
+        Task<RouteDto> CreateRouteAsync(CreateRouteDto createRouteDto);
+        Task<RouteDto?> UpdateRouteAsync(int id, CreateRouteDto updateRouteDto);
+        Task<bool> DeleteRouteAsync(int id);
+        Task<RouteDto?> ToggleActiveRouteAsync(int id);
     }
 }

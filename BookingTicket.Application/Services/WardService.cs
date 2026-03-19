@@ -28,6 +28,12 @@ namespace BookingTicket.Application.Services
             return _mapper.Map<IEnumerable<WardDto>>(wards);
 
         }
+        public async Task<IEnumerable<WardDto>> GetAllWardsAsync()
+        {
+            var wards = await _wardRepository.GetAllWardAsync();
+            return _mapper.Map<IEnumerable<WardDto>>(wards);
+
+        }
         public async Task<WardDto?> ToggleActiveWardAsync(int id)
         {
             var ward = await _wardRepository.ToggleActiveWardAsync(id);

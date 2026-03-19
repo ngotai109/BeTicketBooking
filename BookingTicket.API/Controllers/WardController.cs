@@ -18,10 +18,17 @@ namespace BookingTicket.API.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<ProvinceDto>>> GetAllActiveWard()
+        public async Task<ActionResult<IEnumerable<WardDto>>> GetAllActiveWard()
         {
-            var provinces = await _wardService.GetAllActiveWardsAsync();
-            return Ok(provinces);
+            var wards = await _wardService.GetAllActiveWardsAsync();
+            return Ok(wards);
+        }
+
+        [HttpGet("all")]
+        public async Task<ActionResult<IEnumerable<WardDto>>> GetAllWard()
+        {
+            var wards = await _wardService.GetAllWardsAsync();
+            return Ok(wards);
         }
 
         [HttpGet("{provinceId}/wards")]

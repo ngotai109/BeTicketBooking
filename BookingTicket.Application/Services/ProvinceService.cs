@@ -23,6 +23,12 @@ namespace BookingTicket.Application.Services
             return _mapper.Map<IEnumerable<ProvinceDto>>(provinces);
         }
 
+        public async Task<IEnumerable<ProvinceDto>> GetAllProvinceAsync()
+        {
+            var provinces = await _provinceRepository.GetAllProvinceAsync();
+            return _mapper.Map<IEnumerable<ProvinceDto>>(provinces);
+        }
+
         public async Task<ProvinceDto?> GetByIdAsync(int id)
         {
             var province = await _provinceRepository.GetByIdAsync(id);

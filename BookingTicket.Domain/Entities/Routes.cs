@@ -17,7 +17,6 @@ namespace BookingTicket.Domain.Entities
         public int DepartureOfficeId { get; set; }
         [ForeignKey("DepartureOfficeId")]
         public Office DepartureOffice { get; set; }
-
         public int ArrivalOfficeId { get; set; }
         [ForeignKey("ArrivalOfficeId")]
         public Office ArrivalOffice { get; set; }

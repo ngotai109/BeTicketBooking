@@ -1,14 +1,14 @@
-﻿using BookingTicket.Domain.Entities;
-using System;
+using BookingTicket.Domain.Entities;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace BookingTicket.Application.Interfaces
 {
     public interface IRouteRepository : IGenericRepository<Routes>
     {
-        Task<bool> ExitsByAsyncName(string name);
+        Task<IEnumerable<Routes>> GetAllWithDetailsAsync();
+        Task<IEnumerable<Routes>> GetAllActiveWithDetailsAsync();
+        Task<Routes?> GetByIdWithDetailsAsync(int id);
+        Task<Routes?> ToggleActiveStatusAsync(int id);
     }
 }

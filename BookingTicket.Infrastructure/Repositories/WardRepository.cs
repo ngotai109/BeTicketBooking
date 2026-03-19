@@ -23,6 +23,10 @@ namespace BookingTicket.Infrastructure.Repositories
         {
             return await _dbSet.Where(p => p.IsActive).ToListAsync();
         }
+        public async Task<IEnumerable<Ward>> GetAllWardAsync()
+        {
+            return await _dbSet.ToListAsync();
+        }
         public async Task<Ward?> ToggleActiveWardAsync(int id)
         {
             var ward = await _dbSet.FindAsync(id);

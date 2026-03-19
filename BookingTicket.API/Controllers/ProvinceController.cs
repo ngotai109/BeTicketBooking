@@ -24,6 +24,13 @@ namespace BookingTicket.API.Controllers
             return Ok(provinces);
         }
 
+        [HttpGet("all")]
+        public async Task<ActionResult<IEnumerable<ProvinceDto>>> GetAllProvince()
+        {
+            var provinces = await _provinceService.GetAllProvinceAsync();
+            return Ok(provinces);
+        }
+
         [HttpGet("{id}")]
         public async Task<ActionResult<ProvinceDto>> GetById(int id)
         {

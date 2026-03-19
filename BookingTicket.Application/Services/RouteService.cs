@@ -1,4 +1,4 @@
-﻿ using AutoMapper;
+ using AutoMapper;
 using BookingTicket.Application.DTOs.Route;
 using BookingTicket.Application.Interfaces;
 using BookingTicket.Domain.Entities;
@@ -21,47 +21,62 @@ namespace BookingTicket.Application.Services
             _mapper = mapper;
         }
 
-        public async Task CreateRouteAsync(CreateRouteDto dto)
+        public async Task<IEnumerable<RouteDto>> GetAllRoutesAsync()
         {
-            var route = _mapper.Map<Routes>(dto);
-            await _routeRepository.AddAsync(route);
+            var routes = await _routeRepository.GetAllWithDetailsAsync();
+            return _mapper.Map<IEnumerable<RouteDto>>(routes);
         }
 
-        public async Task DeleteRouteAsync(int idRoute)
+        public async Task<IEnumerable<RouteDto>> GetAllActiveRoutesAsync()
         {
-            var route = await _routeRepository.GetByIdAsync(idRoute);
-            if (route == null)
-            {
-                throw new Exception("Route not found");
-            }
+            var routes = await _routeRepository.GetAllActiveWithDetailsAsync();
+            return _mapper.Map<IEnumerable<RouteDto>>(routes);
+        }
+
+        public async Task<RouteDto?> GetRouteByIdAsync(int id)
+        {
+            var route = await _routeRepository.GetByIdWithDetailsAsync(id);
+            if (route == null) return null;
+            return _mapper.Map<RouteDto>(route);
+        }
+
+        public async Task<RouteDto> CreateRouteAsync(CreateRouteDto createRouteDto)
+        {
+            var routeEntity = _mapper.Map<Routes>(createRouteDto);
+            await _routeRepository.AddAsync(routeEntity);
+            
+            var result = await _routeRepository.GetByIdWithDetailsAsync(routeEntity.RouteId);
+            return _mapper.Map<RouteDto>(result);
+        }
+
+        public async Task<RouteDto?> UpdateRouteAsync(int id, CreateRouteDto updateRouteDto)
+        {
+            var existingRoute = await _routeRepository.GetByIdAsync(id);
+            if (existingRoute == null) return null;
+
+            _mapper.Map(updateRouteDto, existingRoute);
+            await _routeRepository.UpdateAsync(existingRoute);
+
+            var result = await _routeRepository.GetByIdWithDetailsAsync(id);
+            return _mapper.Map<RouteDto>(result);
+        }
+
+        public async Task<bool> DeleteRouteAsync(int id)
+        {
+            var route = await _routeRepository.GetByIdAsync(id);
+            if (route == null) return false;
+
             await _routeRepository.DeleteAsync(route);
+            return true;
         }
 
-        public async Task<IEnumerable<Routes>> GetAllRouteAsync()
+        public async Task<RouteDto?> ToggleActiveRouteAsync(int id)
         {
-            return await _routeRepository.GetAllAsync();
-        }
+            var route = await _routeRepository.ToggleActiveStatusAsync(id);
+            if (route == null) return null;
 
-        public async Task<Routes?> GetRouteByIdAsync(int idRoute)
-        {
-            var route = await _routeRepository.GetByIdAsync(idRoute);
-            if (route == null)
-            {
-                throw new Exception("Route not found");
-            }
-            return route;
-        }
-
-        public async Task UpdateRouteAsync(int idRoute, UpdateRouteDto dto)
-        {
-            var route = await _routeRepository.GetByIdAsync(idRoute);
-            if (route == null)
-            {
-                throw new Exception("Route not found");
-            }
-
-            _mapper.Map(dto, route);
-            await _routeRepository.UpdateAsync(route);
+            var result = await _routeRepository.GetByIdWithDetailsAsync(route.RouteId);
+            return _mapper.Map<RouteDto>(result);
         }
     }
 }

@@ -1,4 +1,4 @@
-﻿using BookingTicket.Application.DTOs.Route;
+using BookingTicket.Application.DTOs.Route;
 using BookingTicket.Application.Interfaces;
 using BookingTicket.Domain.Entities;
 using Microsoft.AspNetCore.Http;
@@ -18,66 +18,56 @@ namespace BookingTicket.API.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Routes>>> GetAllRoutes()
+        public async Task<ActionResult<IEnumerable<RouteDto>>> GetAll()
         {
-            var routes = await _routeService.GetAllRouteAsync();
+            var routes = await _routeService.GetAllRoutesAsync();
+            return Ok(routes);
+        }
+
+        [HttpGet("active")]
+        public async Task<ActionResult<IEnumerable<RouteDto>>> GetAllActive()
+        {
+            var routes = await _routeService.GetAllActiveRoutesAsync();
             return Ok(routes);
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<Routes>> GetRouteById(int id)
+        public async Task<ActionResult<RouteDto>> GetById(int id)
         {
-            try
-            {
-                var route = await _routeService.GetRouteByIdAsync(id);
-                return Ok(route);
-            }
-            catch (Exception ex)
-            {
-                return NotFound(new { message = ex.Message });
-            }
+            var route = await _routeService.GetRouteByIdAsync(id);
+            if (route == null) return NotFound(new { message = "Không tìm thấy tuyến đường." });
+            return Ok(route);
         }
 
         [HttpPost]
-        public async Task<ActionResult> CreateRoute([FromBody] CreateRouteDto dto)
+        public async Task<ActionResult<RouteDto>> Create(CreateRouteDto createRouteDto)
         {
-            try
-            {
-                await _routeService.CreateRouteAsync(dto);
-                return Ok(new { message = "Route created successfully" });
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
+            var createdRoute = await _routeService.CreateRouteAsync(createRouteDto);
+            return CreatedAtAction(nameof(GetById), new { id = createdRoute.RouteId }, createdRoute);
         }
 
         [HttpPut("{id}")]
-        public async Task<ActionResult> UpdateRoute(int id, [FromBody] UpdateRouteDto dto)
+        public async Task<ActionResult<RouteDto>> Update(int id, CreateRouteDto updateRouteDto)
         {
-            try
-            {
-                await _routeService.UpdateRouteAsync(id, dto);
-                return Ok(new { message = "Route updated successfully" });
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
+            var updatedRoute = await _routeService.UpdateRouteAsync(id, updateRouteDto);
+            if (updatedRoute == null) return NotFound(new { message = "Không tìm thấy tuyến đường để cập nhật." });
+            return Ok(updatedRoute);
         }
 
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteRoute(int id)
+        public async Task<IActionResult> Delete(int id)
         {
-            try
-            {
-                await _routeService.DeleteRouteAsync(id);
-                return Ok(new { message = "Route deleted successfully" });
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
+            var result = await _routeService.DeleteRouteAsync(id);
+            if (!result) return NotFound(new { message = "Không tìm thấy tuyến đường để xóa." });
+            return Ok(new { message = "Xóa tuyến đường thành công." });
+        }
+
+        [HttpPatch("{id}/toggle-active")]
+        public async Task<ActionResult<RouteDto>> ToggleActive(int id)
+        {
+            var updatedRoute = await _routeService.ToggleActiveRouteAsync(id);
+            if (updatedRoute == null) return NotFound(new { message = "Không tìm thấy tuyến đường." });
+            return Ok(updatedRoute);
         }
     }
 }
