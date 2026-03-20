@@ -1,3 +1,4 @@
+using BookingTicket.Domain.Enums;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -12,10 +13,7 @@ namespace BookingTicket.Domain.Entities
         public DateTime DepartureTime { get; set; }
         public DateTime ArrivalTime { get; set; }
 
-        /// <summary>Scheduled | InProgress | Completed | Cancelled</summary>
-        [Required]
-        [MaxLength(20)]
-        public string Status { get; set; } = "Scheduled";
+        public TripStatus Status { get; set; } = TripStatus.Scheduled;
 
         public int BusId { get; set; }
         public Buses Bus { get; set; }

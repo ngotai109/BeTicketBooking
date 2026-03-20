@@ -1,4 +1,5 @@
-﻿using System;
+using BookingTicket.Domain.Enums;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -16,7 +17,7 @@ namespace BookingTicket.Domain.Entities
 
         public decimal Amount { get; set; }
 
-        public string Status { get; set; } = "Complete";
+        public PaymentStatus Status { get; set; } = PaymentStatus.Pending;
 
         public int PaymentMethodId { get; set; }
         public PaymentMethods PaymentMethod { get; set; }

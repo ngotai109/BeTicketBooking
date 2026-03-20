@@ -1,3 +1,4 @@
+using BookingTicket.Domain.Enums;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -12,7 +13,7 @@ namespace BookingTicket.Domain.Entities
         public DateTime BookingDate { get; set; } = DateTime.Now;
         [Column(TypeName = "decimal(18,2)")]
         public decimal TotalPrice { get; set; }
-        public string Status { get; set; } = "Pending";
+        public BookingStatus Status { get; set; } = BookingStatus.Pending;
 
         public string UserId { get; set; }
         public ApplicationUser User { get; set; }

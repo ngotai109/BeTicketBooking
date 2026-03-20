@@ -1,4 +1,5 @@
-﻿using System;
+using BookingTicket.Domain.Enums;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -19,6 +20,8 @@ namespace BookingTicket.Domain.Entities
         public string BusType { set; get; }
 
         public string PlateNumber { set; get; }
+
+        public BusStatus Status { get; set; } = BusStatus.Active;
 
         public ICollection<Seats> Seats { get; set; }
         public ICollection<Trips> Trips { get; set; }

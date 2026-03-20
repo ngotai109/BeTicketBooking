@@ -6,11 +6,11 @@ using System.Threading.Tasks;
 
 namespace BookingTicket.Domain.Enums
 {
-    public enum BookingStatus
+    public enum TripStatus
     {
-        Pending = 0,
-        Confirmed = 1,
-        Cancelled = 2,
-        Completed = 3
+        Scheduled = 0,
+        InProgress = 1,
+        Completed = 2,
+        Cancelled = 3
     }
 }

@@ -1,4 +1,5 @@
-﻿using BookingTicket.Domain.Entities;
+using BookingTicket.Domain.Entities;
+using BookingTicket.Domain.Enums;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using System.ComponentModel.DataAnnotations;
 
@@ -15,7 +16,7 @@ public class Tickets
 
     public decimal Price { get; set; }
 
-    public string Status { get; set; } = "Booked";
+    public TicketStatus Status { get; set; } = TicketStatus.Booked;
 
     public DateTime CreatedAt { get; set; } = DateTime.Now;
 }
