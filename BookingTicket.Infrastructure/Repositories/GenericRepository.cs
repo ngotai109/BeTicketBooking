@@ -13,7 +13,7 @@ namespace BookingTicket.Infrastructure.Repositories
     {
         protected readonly ApplicationDbContext _context;
         protected readonly DbSet<T> _dbSet;
-       
+        
         public GenericRepository(ApplicationDbContext context)
         {
             _context = context;
