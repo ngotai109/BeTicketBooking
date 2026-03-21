@@ -1,8 +1,8 @@
 using BookingTicket.Application.Interfaces;
-using BookingTicket.Application.Services;
 using BookingTicket.Infrastructure.Repositories;
 using BookingTicket.Infrastructure.Data;
 using Microsoft.Extensions.DependencyInjection;
+using BookingTicket.Infrastructure.Services;
 
 namespace BookingTicket.Infrastructure
 {
@@ -19,7 +19,12 @@ namespace BookingTicket.Infrastructure
             services.AddScoped<IProvinceRepository, ProvinceRepository>();
             services.AddScoped<IWardRepository, WardRepository>();
             services.AddScoped<IOfficeRepository, OfficeRepository>();
+
+            // Đăng ký AI Service
+            services.AddHttpClient<IAIService, AIService>();
+
             return services;
         }   
     }
 }
+
