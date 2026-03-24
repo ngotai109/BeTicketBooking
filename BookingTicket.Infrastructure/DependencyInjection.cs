@@ -10,7 +10,7 @@ namespace BookingTicket.Infrastructure
     {
         public static IServiceCollection AddInfrastructure(this IServiceCollection services)
         {
-            // Đăng ký ApplicationDbContext như IApplicationDbContext
+  
             services.AddScoped<IApplicationDbContext>(provider => 
                 provider.GetRequiredService<ApplicationDbContext>());
   
