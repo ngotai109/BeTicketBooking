@@ -16,15 +16,16 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(
         builder.Configuration.GetConnectionString("DefaultConnection")));
 
-
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
     .AddEntityFrameworkStores<ApplicationDbContext>()
     .AddDefaultTokenProviders();
 
-// Đăng ký Application và Infrastructure services
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure();
-
+builder.Services.AddHttpClient("", client =>
+{
+    client.Timeout = TimeSpan.FromMinutes(5); 
+});
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowReactApp", policy =>

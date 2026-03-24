@@ -21,6 +21,7 @@ namespace BookingTicket.Application
             services.AddScoped<IProvinceService, ProvinceService>();
             services.AddScoped<IWardService, WardService>();
             services.AddScoped<IOfficeService, OfficeService>();
+            services.AddScoped<IAIService, AIService>();
             return services;
         }
     }

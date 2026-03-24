@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
-
+using BookingTicket.Application.DTOs.AI;
 namespace BookingTicket.Application.Interfaces
 {
     public interface IAIService
@@ -8,9 +8,4 @@ namespace BookingTicket.Application.Interfaces
         Task<string> GetChatResponseAsync(List<ChatMessageDTO> history);
     }
 
-    public class ChatMessageDTO
-    {
-        public string Role { get; set; }
-        public string Content { get; set; }
-    }
 }

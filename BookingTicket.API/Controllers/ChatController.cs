@@ -1,7 +1,7 @@
 using BookingTicket.Application.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
-
+using BookingTicket.Application.DTOs.AI;
 namespace BookingTicket.API.Controllers
 {
     [ApiController]
