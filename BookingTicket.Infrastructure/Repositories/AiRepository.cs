@@ -6,6 +6,7 @@ using System.Linq;
 using System.Net.Http.Json;
 using System.Text;
 using System.Threading.Tasks;
+using BookingTicket.Infrastructure.Helpers;
 namespace BookingTicket.Infrastructure.Repositories
 {
     public class AiRepository : IAiRepository
@@ -24,45 +25,113 @@ namespace BookingTicket.Infrastructure.Repositories
         {
             try
             {
+                var lastMessage = history.LastOrDefault()?.Content ?? "";
+                var intent = IntentHelper.DetectIntent(lastMessage);
 
-                var provinces = await _provinceRepository.GetAllProvinceAsync();
-                var provinceList = string.Join(", ", provinces.Select(p => p.ProvinceName));
 
-                var offices = await _officeRepository.GetAllActiveWithDetailsAsync();
-                var officeInfoList = string.Join(" | ", offices.Select(o => $"{o.OfficeName} ({o.Address} - SĐT: {o.PhoneNumber})"));
+                if (intent == "out_of_scope")
+                {
+                    return GetRandomFallback();
+                }
+
+                if (intent == "small_talk")
+                {
+                    return "Xin chào! Mình có thể giúp bạn tìm chuyến xe hoặc đặt vé 😊";
+                }
 
                 var messages = new List<object>();
+
                 messages.Add(new
                 {
                     role = "system",
-                    content = $"Bạn là trợ lý ảo của nhà xe 'Đồng Hương Sông Lam'. " +
-                              $"Dữ liệu các tỉnh/thành phố: {provinceList}. " +
-                              $"Dữ liệu các văn phòng/nhà xe hiện có: {officeInfoList}. " +
-                              $"Hãy trả lời lịch sự, ngắn gọn và luôn ghi nhớ nội dung người dùng vừa nói ở các câu trước đó. " +
-                              $"LƯU Ý: Khi người dùng hỏi về danh sách văn phòng hoặc địa chỉ, hãy lấy từ dữ liệu được cung cấp trên. " +
-                              $"Để trình bày các bước hướng dẫn, hãy dùng ký tự xuống dòng (\\n) để chia từng dòng 1, 2, 3..."
+                    content = @"
+                           Bạn là chatbot đặt vé xe của nhà xe 'Đồng Hương Sông Lam'.
+                           NHIỆM VỤ:
+                                     - Tìm chuyến xe
+                                     - Cung cấp thông tin văn phòng
+                                     - Hỗ trợ đặt vé
+
+                           QUY TẮC:
+                                      1. Chỉ sử dụng dữ liệu được cung cấp
+                                      2. Không được tự bịa thông tin
+                                      3. Nếu không có dữ liệu → trả lời: 'Hiện tại tôi chưa có thông tin này'
+
+                           TRẢ LỜI:
+                                   - Ngắn gọn
+                                    - Rõ ràng
+                                    - Không lan man "
                 });
+                if (intent == "office_info")
+                {
+                    var offices = await _officeRepository.GetAllActiveWithDetailsAsync();
+                    var officeInfoList = string.Join("\n",
+                        offices.Select(o => $"{o.OfficeName} - {o.Address} - SĐT: {o.PhoneNumber}"));
+
+                    messages.Add(new
+                    {
+                        role = "system",
+                        content = $"DANH SÁCH VĂN PHÒNG:\n{officeInfoList}"
+                    });
+                }
+
+                if (intent == "search_trip" || intent == "book_ticket")
+                {
+                    var provinces = await _provinceRepository.GetAllProvinceAsync();
+                    var provinceList = string.Join(", ", provinces.Select(p => p.ProvinceName));
+
+                    messages.Add(new
+                    {
+                        role = "system",
+                        content = $"DANH SÁCH TỈNH: {provinceList}"
+                    });
+                }
 
                 foreach (var msg in history)
                 {
-                    messages.Add(new { role = msg.Role, content = msg.Content });
+                    messages.Add(new
+                    {
+                        role = msg.Role,
+                        content = msg.Content
+                    });
                 }
 
-                var requestData = new { model = "local-model", messages = messages, temperature = 0.7 };
-                var response = await _httpClient.PostAsJsonAsync("http://localhost:1234/v1/chat/completions", requestData);
-
-                if (response.IsSuccessStatusCode)
+                var requestData = new
                 {
-                    var result = await response.Content.ReadFromJsonAsync<ChatCompletionResponse>();
-                    return result?.Choices?.FirstOrDefault()?.message?.Content ?? "AI chưa trả về nội dung.";
-                }
+                    model = "local-model",
+                    messages = messages,
+                    temperature = 0.3, 
+                    max_tokens = 512
+                };
 
-                return "AI đang bận, bạn vui lòng thử lại sau.";
+                var response = await _httpClient.PostAsJsonAsync(
+                    "http://localhost:1234/v1/chat/completions",
+                    requestData);
+
+                if (!response.IsSuccessStatusCode)
+                    return "AI đang bận, bạn thử lại sau nhé.";
+
+                var result = await response.Content.ReadFromJsonAsync<ChatCompletionResponse>();
+
+                return result?.Choices?.FirstOrDefault()?.message?.Content
+                       ?? "AI chưa trả về nội dung.";
             }
             catch (Exception ex)
             {
-                return $"Lỗi kết nối AI: {ex.Message}.";
+                return $"Lỗi AI: {ex.Message}";
             }
+        }
+        private string GetRandomFallback()
+        {
+            var responses = new List<string>
+            {
+                "Mình chuyên hỗ trợ đặt vé xe thôi 😄 Bạn cần đi đâu?",
+                "Câu này mình chưa hỗ trợ tốt. Nhưng mình giúp bạn đặt vé rất nhanh!",
+                "Bạn cần tìm chuyến xe hay đặt vé không? Mình hỗ trợ ngay!",
+                "Mình tập trung vào đặt vé xe khách. Bạn muốn đi đâu để mình tìm chuyến?"
+            };
+
+            var rand = new Random();
+            return responses[rand.Next(responses.Count)];
         }
     }
 }
