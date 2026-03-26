@@ -1,5 +1,5 @@
 using BookingTicket.Application.DTOs.Province;
-using BookingTicket.Application.Interfaces;
+using BookingTicket.Application.Interfaces.IServices;
 using BookingTicket.Application.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;

@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Identity;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace BookingTicket.Application.Interfaces
+namespace BookingTicket.Application.Interfaces.IServices
 {
     public interface IApplicationDbContext
     {

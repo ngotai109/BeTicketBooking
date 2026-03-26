@@ -1,7 +1,8 @@
-using BookingTicket.Application.Interfaces;
 using BookingTicket.Infrastructure.Repositories;
 using BookingTicket.Infrastructure.Data;
 using Microsoft.Extensions.DependencyInjection;
+using BookingTicket.Application.Interfaces.IRepositories;
+using BookingTicket.Application.Interfaces.IServices;
 
 
 namespace BookingTicket.Infrastructure

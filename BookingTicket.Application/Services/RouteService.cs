@@ -1,6 +1,7 @@
- using AutoMapper;
+using AutoMapper;
 using BookingTicket.Application.DTOs.Route;
-using BookingTicket.Application.Interfaces;
+using BookingTicket.Application.Interfaces.IRepositories;
+using BookingTicket.Application.Interfaces.IServices;
 using BookingTicket.Domain.Entities;
 using System;
 using System.Collections.Generic;

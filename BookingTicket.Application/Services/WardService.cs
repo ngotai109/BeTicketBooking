@@ -1,6 +1,7 @@
 using AutoMapper;
 using BookingTicket.Application.DTOs.Province;
-using BookingTicket.Application.Interfaces;
+using BookingTicket.Application.Interfaces.IRepositories;
+using BookingTicket.Application.Interfaces.IServices;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 

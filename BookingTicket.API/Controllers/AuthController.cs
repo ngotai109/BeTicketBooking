@@ -1,6 +1,6 @@
 
 using BookingTicket.Application.DTOs.Auth;
-using BookingTicket.Application.Interfaces;
+using BookingTicket.Application.Interfaces.IServices;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
 

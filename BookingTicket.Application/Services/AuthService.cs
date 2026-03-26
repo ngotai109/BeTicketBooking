@@ -2,7 +2,6 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using BookingTicket.Application.DTOs.Auth;
-using BookingTicket.Application.Interfaces;
 using BookingTicket.Domain.Entities;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
@@ -11,6 +10,7 @@ using System.Threading.Tasks;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using BookingTicket.Application.Interfaces.IServices;
 
 
 namespace BookingTicket.Application.Services

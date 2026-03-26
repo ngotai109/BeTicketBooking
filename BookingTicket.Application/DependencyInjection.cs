@@ -1,4 +1,4 @@
-using BookingTicket.Application.Interfaces;
+using BookingTicket.Application.Interfaces.IServices;
 using BookingTicket.Application.Services;
 using Microsoft.Extensions.DependencyInjection;
 using System;

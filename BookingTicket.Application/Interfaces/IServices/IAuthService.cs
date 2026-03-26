@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using BookingTicket.Application.DTOs.Auth;
 using BookingTicket.Domain.Entities;
 
-namespace BookingTicket.Application.Interfaces
+namespace BookingTicket.Application.Interfaces.IServices
 {
     public interface IAuthService
     {

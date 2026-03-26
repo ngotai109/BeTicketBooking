@@ -6,13 +6,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace BookingTicket.Application.Interfaces
+namespace BookingTicket.Application.Interfaces.IRepositories
 {
-    public interface IBusRepository
+    public interface IVehicalRepository
     {
         Task<IEnumerable<BusDTO>> GetAllBusesAsync();
         Task<IEnumerable<BusDTO>> GetAllActiveBusesAsync();
         Task<BusDTO?> GetBusByIdAsync(int id);
-        Task<BusDTO?> ToggleActiveRouteAsync(int id);
+        Task<BusDTO?> ToggleActiveRouteAsync(int id,string status);
     }
 }

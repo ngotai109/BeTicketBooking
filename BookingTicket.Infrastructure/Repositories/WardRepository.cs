@@ -1,4 +1,4 @@
-using BookingTicket.Application.Interfaces;
+using BookingTicket.Application.Interfaces.IRepositories;
 using BookingTicket.Domain.Entities;
 using BookingTicket.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
@@ -14,7 +14,6 @@ namespace BookingTicket.Infrastructure.Repositories
         {
 
         }
-
         public async Task<IEnumerable<Ward>> GetWardsByProvinceIdAsync(int provinceId)
         {
             return await _dbSet.Where(w => w.ProvinceId == provinceId && w.IsActive).ToListAsync();

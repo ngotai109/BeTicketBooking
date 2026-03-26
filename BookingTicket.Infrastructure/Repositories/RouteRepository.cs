@@ -1,4 +1,4 @@
-using BookingTicket.Application.Interfaces;
+using BookingTicket.Application.Interfaces.IRepositories;
 using BookingTicket.Domain.Entities;
 using BookingTicket.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;

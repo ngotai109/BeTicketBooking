@@ -1,4 +1,4 @@
-﻿using BookingTicket.Application.Interfaces;
+﻿using BookingTicket.Application.Interfaces.IServices;
 using BookingTicket.Domain.Entities;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;

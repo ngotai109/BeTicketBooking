@@ -1,6 +1,7 @@
 using AutoMapper;
 using BookingTicket.Application.DTOs.Office;
-using BookingTicket.Application.Interfaces;
+using BookingTicket.Application.Interfaces.IRepositories;
+using BookingTicket.Application.Interfaces.IServices;
 using BookingTicket.Domain.Entities;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -41,8 +42,7 @@ namespace BookingTicket.Application.Services
         {
             var officeEntity = _mapper.Map<Office>(createOfficeDto);
             await _officeRepository.AddAsync(officeEntity);
-            
-            // Lấy lại entity đầy đủ thông tin để map sang DTO trả về
+
             var result = await _officeRepository.GetByIdWithDetailsAsync(officeEntity.OfficeId);
             return _mapper.Map<OfficeDto>(result);
         }

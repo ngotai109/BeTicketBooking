@@ -1,5 +1,4 @@
 ﻿using BookingTicket.Application.DTOs.AI;
-using BookingTicket.Application.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,6 +6,7 @@ using System.Net.Http.Json;
 using System.Text;
 using System.Threading.Tasks;
 using BookingTicket.Infrastructure.Helpers;
+using BookingTicket.Application.Interfaces.IRepositories;
 namespace BookingTicket.Infrastructure.Repositories
 {
     public class AiRepository : IAiRepository

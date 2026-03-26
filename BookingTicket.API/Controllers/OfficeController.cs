@@ -1,5 +1,5 @@
 using BookingTicket.Application.DTOs.Office;
-using BookingTicket.Application.Interfaces;
+using BookingTicket.Application.Interfaces.IServices;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using System.Threading.Tasks;

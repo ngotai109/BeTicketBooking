@@ -1,5 +1,6 @@
 ﻿using BookingTicket.Application.DTOs.AI;
-using BookingTicket.Application.Interfaces;
+using BookingTicket.Application.Interfaces.IRepositories;
+using BookingTicket.Application.Interfaces.IServices;
 using System;
 using System.Collections.Generic;
 using System.Linq;

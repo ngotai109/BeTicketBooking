@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using BookingTicket.Application.DTOs.AI;
-namespace BookingTicket.Application.Interfaces
+namespace BookingTicket.Application.Interfaces.IRepositories
 {
     public interface IAiRepository
     {

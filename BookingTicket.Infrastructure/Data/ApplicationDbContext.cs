@@ -2,7 +2,7 @@ using BookingTicket.Domain.Entities;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
-using BookingTicket.Application.Interfaces;
+using BookingTicket.Application.Interfaces.IServices;
 
 namespace BookingTicket.Infrastructure.Data
 {
