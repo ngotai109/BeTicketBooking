@@ -7,11 +7,11 @@ namespace BookingTicket.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class VehicalController : ControllerBase
+    public class VehicleController : ControllerBase
     {
         private readonly IVehicalService _vehicalService;
 
-        public VehicalController(IVehicalService vehicalService)
+        public VehicleController(IVehicalService vehicalService)
         {
             _vehicalService = vehicalService;
         }
