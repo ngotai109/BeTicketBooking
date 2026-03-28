@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,7 +14,13 @@ namespace BookingTicket.Application.Mappings
     {
         public BusMappingProfile()
         {
-            CreateMap<Buses, BusDTO>();
+            CreateMap<Buses, BusDTO>()
+                .ForMember(dest => dest.BusTypeName, opt => opt.MapFrom(src => src.BusType.TypeName));
+            CreateMap<CreateBusDTO, Buses>();
+            CreateMap<UpdateBusDTO, Buses>();
+
+            CreateMap<BusTypes, BusTypeDto>().ReverseMap();
+            CreateMap<CreateBusTypeDto, BusTypes>();
         }
     }
 }

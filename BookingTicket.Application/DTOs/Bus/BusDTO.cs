@@ -1,4 +1,4 @@
-﻿using BookingTicket.Domain.Enums;
+using BookingTicket.Domain.Enums;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,7 +15,8 @@ namespace BookingTicket.Application.DTOs.Bus
 
         public int TotalSeats { set; get; }
 
-        public string BusType { set; get; }
+        public int BusTypeId { get; set; }
+        public string BusTypeName { get; set; }
 
         public string PlateNumber { set; get; }
 

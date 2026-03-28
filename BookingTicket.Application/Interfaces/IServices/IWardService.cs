@@ -9,6 +9,10 @@ namespace BookingTicket.Application.Interfaces.IServices
         Task<IEnumerable<WardDto>> GetWardsByProvinceIdAsync(int provinceId);
         Task<IEnumerable<WardDto>> GetAllActiveWardsAsync();
         Task<IEnumerable<WardDto>> GetAllWardsAsync();
+        Task<WardDto?> GetWardByIdAsync(int id);
+        Task<WardDto> CreateWardAsync(WardDto wardDto);
+        Task<WardDto?> UpdateWardAsync(int id, WardDto wardDto);
+        Task<bool> DeleteWardAsync(int id);
         Task<WardDto?> ToggleActiveWardAsync(int id);
     }
 }

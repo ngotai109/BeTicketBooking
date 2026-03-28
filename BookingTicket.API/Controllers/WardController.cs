@@ -37,6 +37,37 @@ namespace BookingTicket.API.Controllers
             var wards = await _wardService.GetWardsByProvinceIdAsync(provinceId);
             return Ok(wards);
         }
+        [HttpGet("{id}")]
+        public async Task<ActionResult<WardDto>> GetById(int id)
+        {
+            var result = await _wardService.GetWardByIdAsync(id);
+            if (result == null) return NotFound(new { message = "Không tìm thấy thông tin phường/xã." });
+            return Ok(result);
+        }
+
+        [HttpPost]
+        public async Task<ActionResult<WardDto>> CreateWard([FromBody] WardDto wardDto)
+        {
+            var result = await _wardService.CreateWardAsync(wardDto);
+            return CreatedAtAction(nameof(GetById), new { id = result.WardId }, result);
+        }
+
+        [HttpPut("{id}")]
+        public async Task<ActionResult<WardDto>> UpdateWard(int id, [FromBody] WardDto wardDto)
+        {
+            var result = await _wardService.UpdateWardAsync(id, wardDto);
+            if (result == null) return NotFound(new { message = "Không tìm thấy thông tin phường/xã để cập nhật." });
+            return Ok(result);
+        }
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteWard(int id)
+        {
+            var success = await _wardService.DeleteWardAsync(id);
+            if (!success) return NotFound(new { message = "Không tìm thấy thông tin phường/xã để xóa." });
+            return NoContent();
+        }
+
         [HttpPut("{id}/toggle-active")]
         public async Task<IActionResult> ToggleActiveWard(int id)
         {

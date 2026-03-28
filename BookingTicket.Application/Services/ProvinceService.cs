@@ -2,6 +2,7 @@ using AutoMapper;
 using BookingTicket.Application.DTOs.Province;
 using BookingTicket.Application.Interfaces.IRepositories;
 using BookingTicket.Application.Interfaces.IServices;
+using BookingTicket.Domain.Entities;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -41,7 +42,32 @@ namespace BookingTicket.Application.Services
             var province = await _provinceRepository.ToggleActiveProvinceAsync(id);
             if (province == null) return null;
             return _mapper.Map<ProvinceDto>(province);
-        
+        }
+
+        public async Task<ProvinceDto> CreateProvinceAsync(ProvinceDto provinceDto)
+        {
+            var province = _mapper.Map<Provinces>(provinceDto);
+            await _provinceRepository.AddAsync(province);
+            return _mapper.Map<ProvinceDto>(province);
+        }
+
+        public async Task<ProvinceDto?> UpdateProvinceAsync(int id, ProvinceDto provinceDto)
+        {
+            var existingProvince = await _provinceRepository.GetByIdAsync(id);
+            if (existingProvince == null) return null;
+
+            _mapper.Map(provinceDto, existingProvince);
+            await _provinceRepository.UpdateAsync(existingProvince);
+            return _mapper.Map<ProvinceDto>(existingProvince);
+        }
+
+        public async Task<bool> DeleteProvinceAsync(int id)
+        {
+            var province = await _provinceRepository.GetByIdAsync(id);
+            if (province == null) return false;
+
+            await _provinceRepository.DeleteAsync(province);
+            return true;
         }
     }
 }

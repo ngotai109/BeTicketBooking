@@ -1,4 +1,3 @@
-using BookingTicket.Domain.Entities;
 using BookingTicket.Domain.Enums;
 using System;
 using System.Collections.Generic;
@@ -8,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace BookingTicket.Application.DTOs.Bus
 {
-    public class CreateBusDTO
+    public class UpdateBusDTO
     {
         public int BusId { set; get; }
 
@@ -20,7 +19,6 @@ namespace BookingTicket.Application.DTOs.Bus
 
         public string PlateNumber { set; get; }
 
-        public BusStatus Status { get; set; } = BusStatus.Active;
-
+        public BusStatus Status { get; set; } 
     }
 }

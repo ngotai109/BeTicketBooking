@@ -11,21 +11,25 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using BookingTicket.Application.Interfaces.IServices;
+using BookingTicket.Application.Interfaces.IRepositories;
 
 
 namespace BookingTicket.Application.Services
 {
     public class AuthService : IAuthService
     {
-        private readonly UserManager<ApplicationUser> _userManager;
+        private readonly IUserRepository _userRepository;
+        private readonly UserManager<ApplicationUser> _userManager; // Still needed for CheckPassword and Roles
         private readonly IConfiguration _configuration;
         private readonly IRefreshTokenService _refreshTokenService;
 
         public AuthService(
+            IUserRepository userRepository,
             UserManager<ApplicationUser> userManager,
             IConfiguration configuration,
             IRefreshTokenService refreshTokenService) 
         {
+            _userRepository = userRepository;
             _userManager = userManager;
             _configuration = configuration;
             _refreshTokenService = refreshTokenService; 

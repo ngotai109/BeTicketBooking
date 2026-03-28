@@ -22,6 +22,7 @@ namespace BookingTicket.Infrastructure.Data
         public DbSet<Office> Offices { get; set; }
 
         // Xe & Tuyến
+        public DbSet<BusTypes> BusTypes { get; set; }
         public DbSet<Buses> Buses { get; set; }
         public DbSet<Routes> Routes { get; set; }
         public DbSet<Trips> Trips { get; set; }
@@ -134,6 +135,13 @@ namespace BookingTicket.Infrastructure.Data
                 .HasOne(p => p.PaymentMethod)
                 .WithMany()
                 .HasForeignKey(p => p.PaymentMethodId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // ── BusTypes → Buses ───────────────────────────────────────
+            modelBuilder.Entity<Buses>()
+                .HasOne(b => b.BusType)
+                .WithMany(bt => bt.Buses)
+                .HasForeignKey(b => b.BusTypeId)
                 .OnDelete(DeleteBehavior.Restrict);
         }
     }

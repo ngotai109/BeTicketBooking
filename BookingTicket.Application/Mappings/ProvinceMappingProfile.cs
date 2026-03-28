@@ -8,8 +8,8 @@ namespace BookingTicket.Application.Mappings
     {
         public ProvinceMappingProfile()
         {
-            CreateMap<Provinces, ProvinceDto>();
-            CreateMap<Ward, WardDto>();
+            CreateMap<Provinces, ProvinceDto>().ReverseMap();
+            CreateMap<Ward, WardDto>().ReverseMap();
         }
     }
 }

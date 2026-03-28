@@ -42,6 +42,35 @@ namespace BookingTicket.API.Controllers
             return Ok(province);
         }
 
+        [HttpPost]
+        public async Task<ActionResult<ProvinceDto>> CreateProvince([FromBody] ProvinceDto provinceDto)
+        {
+            var result = await _provinceService.CreateProvinceAsync(provinceDto);
+            return CreatedAtAction(nameof(GetById), new { id = result.ProvinceId }, result);
+        }
+
+        [HttpPut("{id}")]
+        public async Task<ActionResult<ProvinceDto>> UpdateProvince(int id, [FromBody] ProvinceDto provinceDto)
+        {
+            var result = await _provinceService.UpdateProvinceAsync(id, provinceDto);
+            if (result == null)
+            {
+                return NotFound(new { message = "Không tìm thấy tỉnh/thành phố để cập nhật." });
+            }
+            return Ok(result);
+        }
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteProvince(int id)
+        {
+            var success = await _provinceService.DeleteProvinceAsync(id);
+            if (!success)
+            {
+                return NotFound(new { message = "Không tìm thấy tỉnh/thành phố để xóa." });
+            }
+            return NoContent();
+        }
+
         [HttpPut("{id}/toggle-active")]
         public async Task<IActionResult> ToggleActiveProvince(int id)
         {

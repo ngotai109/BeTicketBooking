@@ -17,7 +17,8 @@ namespace BookingTicket.Domain.Entities
 
         public int TotalSeats { set; get; }
 
-        public string BusType { set; get; }
+        public int BusTypeId { get; set; }
+        public BusTypes BusType { get; set; }
 
         public string PlateNumber { set; get; }
 
