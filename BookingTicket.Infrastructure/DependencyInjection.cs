@@ -30,6 +30,7 @@ namespace BookingTicket.Infrastructure
             services.AddScoped<IScheduleRepository, ScheduleRepository>();
             services.AddScoped<ISeatRepository, SeatRepository>();
             services.AddScoped<ITripSeatRepository, TripSeatRepository>();
+            services.AddScoped<ITicketRepository, TicketRepository>();
 
             return services;
         }   

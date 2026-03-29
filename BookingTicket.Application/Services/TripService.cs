@@ -133,6 +133,25 @@ namespace BookingTicket.Application.Services
             return true;
         }
 
+        public async Task<bool> UpdateTripStatusAsync(int tripId, int status)
+        {
+            var trip = await _tripRepository.GetByIdAsync(tripId);
+            if (trip == null) return false;
+
+            trip.Status = (TripStatus)status;
+            await _tripRepository.UpdateAsync(trip);
+            return true;
+        }
+
+        public async Task<bool> DeleteTripAsync(int tripId)
+        {
+            var trip = await _tripRepository.GetByIdAsync(tripId);
+            if (trip == null) return false;
+
+            await _tripRepository.DeleteAsync(trip);
+            return true;
+        }
+
         private async Task CreateNewTripFromSchedule(Schedules schedule, DateTime date, IEnumerable<Seats> allSeats)
         {
             var departureTime = date.Add(schedule.DepartureTime);

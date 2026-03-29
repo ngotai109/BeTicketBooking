@@ -1,0 +1,19 @@
+﻿  Determining projects to restore...
+  All projects are up-to-date for restore.
+  BookingTicket.Domain -> E:\DoAnTotNghiep\BackEnd\BookingTicket.Domain\bin\Debug\net8.0\BookingTicket.Domain.dll
+  BookingTicket.Application -> E:\DoAnTotNghiep\BackEnd\BookingTicket.Application\bin\Debug\net8.0\BookingTicket.Application.dll
+E:\DoAnTotNghiep\BackEnd\BookingTicket.Infrastructure\Repositories\UserRepository.cs(28,20): warning CS8603: Possible null reference return. [E:\DoAnTotNghiep\BackEnd\BookingTicket.Infrastructure\BookingTicket.Infrastructure.csproj]
+E:\DoAnTotNghiep\BackEnd\BookingTicket.Infrastructure\Repositories\UserTokenRepository.cs(20,20): warning CS8603: Possible null reference return. [E:\DoAnTotNghiep\BackEnd\BookingTicket.Infrastructure\BookingTicket.Infrastructure.csproj]
+E:\DoAnTotNghiep\BackEnd\BookingTicket.Infrastructure\Repositories\UserRepository.cs(58,20): warning CS8603: Possible null reference return. [E:\DoAnTotNghiep\BackEnd\BookingTicket.Infrastructure\BookingTicket.Infrastructure.csproj]
+  BookingTicket.Infrastructure -> E:\DoAnTotNghiep\BackEnd\BookingTicket.Infrastructure\bin\Debug\net8.0\BookingTicket.Infrastructure.dll
+  BookingTicket.API -> E:\DoAnTotNghiep\BackEnd\BookingTicket.API\bin\Debug\net8.0\BookingTicket.API.dll
+
+Build succeeded.
+
+E:\DoAnTotNghiep\BackEnd\BookingTicket.Infrastructure\Repositories\UserRepository.cs(28,20): warning CS8603: Possible null reference return. [E:\DoAnTotNghiep\BackEnd\BookingTicket.Infrastructure\BookingTicket.Infrastructure.csproj]
+E:\DoAnTotNghiep\BackEnd\BookingTicket.Infrastructure\Repositories\UserTokenRepository.cs(20,20): warning CS8603: Possible null reference return. [E:\DoAnTotNghiep\BackEnd\BookingTicket.Infrastructure\BookingTicket.Infrastructure.csproj]
+E:\DoAnTotNghiep\BackEnd\BookingTicket.Infrastructure\Repositories\UserRepository.cs(58,20): warning CS8603: Possible null reference return. [E:\DoAnTotNghiep\BackEnd\BookingTicket.Infrastructure\BookingTicket.Infrastructure.csproj]
+    3 Warning(s)
+    0 Error(s)
+
+Time Elapsed 00:00:03.23

@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BookingTicket.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260321031018_AddScheludeEntity")]
-    partial class AddScheludeEntity
+    [Migration("20260329134620_UpdateBookingForGuestCheckout")]
+    partial class UpdateBookingForGuestCheckout
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -107,6 +107,17 @@ namespace BookingTicket.Infrastructure.Migrations
                     b.Property<DateTime>("BookingDate")
                         .HasColumnType("datetime2");
 
+                    b.Property<string>("CustomerEmail")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("CustomerName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("CustomerPhone")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
                     b.Property<int>("Status")
                         .HasColumnType("int");
 
@@ -114,14 +125,44 @@ namespace BookingTicket.Infrastructure.Migrations
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("UserId")
-                        .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
                     b.HasKey("BookingId");
 
+                    b.HasIndex("CustomerPhone");
+
                     b.HasIndex("UserId");
 
                     b.ToTable("Bookings");
+                });
+
+            modelBuilder.Entity("BookingTicket.Domain.Entities.BusTypes", b =>
+                {
+                    b.Property<int>("BusTypeId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("BusTypeId"));
+
+                    b.Property<int>("DefaultSeats")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("TypeName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.HasKey("BusTypeId");
+
+                    b.ToTable("BusTypes");
                 });
 
             modelBuilder.Entity("BookingTicket.Domain.Entities.Buses", b =>
@@ -136,9 +177,8 @@ namespace BookingTicket.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("BusType")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<int>("BusTypeId")
+                        .HasColumnType("int");
 
                     b.Property<string>("PlateNumber")
                         .IsRequired()
@@ -151,6 +191,8 @@ namespace BookingTicket.Infrastructure.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("BusId");
+
+                    b.HasIndex("BusTypeId");
 
                     b.ToTable("Buses");
                 });
@@ -648,11 +690,20 @@ namespace BookingTicket.Infrastructure.Migrations
                 {
                     b.HasOne("BookingTicket.Domain.Entities.ApplicationUser", "User")
                         .WithMany("Bookings")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("UserId");
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("BookingTicket.Domain.Entities.Buses", b =>
+                {
+                    b.HasOne("BookingTicket.Domain.Entities.BusTypes", "BusType")
+                        .WithMany("Buses")
+                        .HasForeignKey("BusTypeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("BusType");
                 });
 
             modelBuilder.Entity("BookingTicket.Domain.Entities.Office", b =>
@@ -879,6 +930,11 @@ namespace BookingTicket.Infrastructure.Migrations
                     b.Navigation("Payments");
 
                     b.Navigation("Tickets");
+                });
+
+            modelBuilder.Entity("BookingTicket.Domain.Entities.BusTypes", b =>
+                {
+                    b.Navigation("Buses");
                 });
 
             modelBuilder.Entity("BookingTicket.Domain.Entities.Buses", b =>

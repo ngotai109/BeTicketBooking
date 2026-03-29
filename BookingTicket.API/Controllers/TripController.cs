@@ -67,13 +67,21 @@ namespace BookingTicket.API.Controllers
 
             return Ok(new { message = "Tạo chuyến thành công." });
         }
-    }
 
-    public class QuickBookRequest
-    {
-        public int TripSeatId { get; set; }
-        public string CustomerName { get; set; }
-        public string PhoneNumber { get; set; }
-        public int Status { get; set; }
+        [HttpPatch("{id}/status")]
+        public async Task<IActionResult> UpdateStatus(int id, [FromQuery] int status)
+        {
+            var result = await _tripService.UpdateTripStatusAsync(id, status);
+            if (!result) return NotFound(new { message = "Không tìm thấy chuyến đi để cập nhật." });
+            return Ok(new { message = "Cập nhật trạng thái chuyến đi thành công." });
+        }
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> Delete(int id)
+        {
+            var result = await _tripService.DeleteTripAsync(id);
+            if (!result) return NotFound(new { message = "Không tìm thấy chuyến đi để xóa." });
+            return NoContent();
+        }
     }
 }

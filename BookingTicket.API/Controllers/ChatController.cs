@@ -27,9 +27,4 @@ namespace BookingTicket.API.Controllers
             return Ok(new { reply });
         }
     }
-
-    public class ChatRequest
-    {
-        public List<ChatMessageDTO> History { get; set; }
-    }
 }

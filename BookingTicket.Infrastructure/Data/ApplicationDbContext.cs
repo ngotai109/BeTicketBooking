@@ -14,7 +14,7 @@ namespace BookingTicket.Infrastructure.Data
         }
 
         // Implement IApplicationDbContext
-        public DbSet<IdentityUserToken<string>> UserTokens => Set<IdentityUserToken<string>>();
+        public new DbSet<IdentityUserToken<string>> UserTokens => Set<IdentityUserToken<string>>();
 
         // Địa điểm
         public DbSet<Provinces> Provinces { get; set; }
@@ -25,6 +25,7 @@ namespace BookingTicket.Infrastructure.Data
         public DbSet<BusTypes> BusTypes { get; set; }
         public DbSet<Buses> Buses { get; set; }
         public DbSet<Routes> Routes { get; set; }
+        public DbSet<Schedules> Schedules { get; set; }
         public DbSet<Trips> Trips { get; set; }
         public DbSet<Seats> Seats { get; set; }
         public DbSet<TripSeats> TripSeats { get; set; }
@@ -119,6 +120,9 @@ namespace BookingTicket.Infrastructure.Data
             modelBuilder.Entity<Bookings>()
                 .Property(b => b.TotalPrice)
                 .HasColumnType("decimal(18,2)");
+
+            modelBuilder.Entity<Bookings>()
+                .HasIndex(b => b.CustomerPhone); // Thêm Index để thống kê theo SĐT nhanh hơn
 
             // ── Payments ──────────────────────────────────────────────────
             modelBuilder.Entity<Payments>()

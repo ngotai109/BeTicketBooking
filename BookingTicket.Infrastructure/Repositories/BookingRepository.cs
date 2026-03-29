@@ -10,11 +10,8 @@ namespace BookingTicket.Infrastructure.Repositories
 {
     public class BookingRepository : GenericRepository<Bookings>, IBookingRepository
     {
-        private readonly ApplicationDbContext _context;
-
         public BookingRepository(ApplicationDbContext context) : base(context)
         {
-            _context = context;
         }
 
         public async Task<IEnumerable<Bookings>> GetBookingsByUserIdAsync(string userId)

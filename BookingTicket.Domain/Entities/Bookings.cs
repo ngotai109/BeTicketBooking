@@ -15,8 +15,13 @@ namespace BookingTicket.Domain.Entities
         public decimal TotalPrice { get; set; }
         public BookingStatus Status { get; set; } = BookingStatus.Pending;
 
-        public string UserId { get; set; }
-        public ApplicationUser User { get; set; }
+        // Thông tin khách hàng (Dành cho khách vãng lai)
+        public string CustomerName { get; set; } = string.Empty;
+        public string CustomerPhone { get; set; } = string.Empty;
+        public string? CustomerEmail { get; set; }
+
+        public string? UserId { get; set; } // Cho phép null nếu không đăng nhập
+        public ApplicationUser? User { get; set; }
 
         public ICollection<Tickets> Tickets { get; set; } = new List<Tickets>();
         public ICollection<Payments> Payments { get; set; } = new List<Payments>();

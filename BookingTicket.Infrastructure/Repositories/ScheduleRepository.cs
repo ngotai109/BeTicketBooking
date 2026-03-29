@@ -1,15 +1,16 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using BookingTicket.Application.Interfaces.IRepositories;
+using BookingTicket.Domain.Entities;
+using BookingTicket.Infrastructure.Data;
 
 namespace BookingTicket.Infrastructure.Repositories
 {
     public class ScheduleRepository : GenericRepository<Schedules>, IScheduleRepository
     {
-        private readonly ApplicationDbContext _context;
         public ScheduleRepository(ApplicationDbContext context) : base(context)
         {
-            _context = context;
         }
 
         public async Task<IEnumerable<Schedules>> GetAllWithDetailsAsync()

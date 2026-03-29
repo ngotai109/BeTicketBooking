@@ -12,5 +12,7 @@ namespace BookingTicket.Application.Interfaces.IServices
         Task<bool> QuickBookSeatAsync(int tripSeatId, string customerName, string phoneNumber, int status);
         Task<bool> AutoGenerateTripsAsync(DateTime startDate, DateTime endDate);
         Task<bool> CreateTripAsync(int scheduleId, DateTime departureDate);
+        Task<bool> UpdateTripStatusAsync(int tripId, int status);
+        Task<bool> DeleteTripAsync(int tripId);
     }
 }
