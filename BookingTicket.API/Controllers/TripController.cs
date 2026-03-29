@@ -45,6 +45,28 @@ namespace BookingTicket.API.Controllers
             if (!success) return BadRequest(new { message = "Không thể thực hiện đặt vé nhanh." });
             return Ok(new { message = "Đã cập nhật trạng thái ghế thành công." });
         }
+        [HttpPost("generate")]
+        public async Task<IActionResult> AutoGenerateTrips([FromBody] AutoGenerateTripDto request)
+        {
+            if (request.StartDate > request.EndDate)
+            {
+                return BadRequest(new { message = "Ngày bắt đầu phải nhỏ hơn hoặc bằng ngày kết thúc." });
+            }
+
+            var result = await _tripService.AutoGenerateTripsAsync(request.StartDate, request.EndDate);
+            if (!result) return BadRequest(new { message = "Không có chuyến nào được tạo hoặc lịch trình không hợp lệ." });
+            
+            return Ok(new { message = "Sinh chuyến tự động thành công." });
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> CreateTrip([FromBody] CreateTripInputDto request)
+        {
+            var result = await _tripService.CreateTripAsync(request.ScheduleId, request.DepartureDate);
+            if (!result) return BadRequest(new { message = "Tạo chuyến thất bại. Lịch trình không tồn tại hoặc chuyến đã tồn tại trong ngày này." });
+
+            return Ok(new { message = "Tạo chuyến thành công." });
+        }
     }
 
     public class QuickBookRequest

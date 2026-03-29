@@ -26,6 +26,7 @@ namespace BookingTicket.Application
             services.AddScoped<IBusTypeService, BusTypeService>();
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<ITripService, TripService>();
+            services.AddScoped<IScheduleService, ScheduleService>();
             return services;
         }
     }
