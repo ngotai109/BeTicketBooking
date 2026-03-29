@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -13,10 +13,10 @@ namespace BookingTicket.Domain.Entities
         public int ScheduleId { get; set; }
         [Required]
         public int RouteId { get; set; } // Liên kết đến Tuyến đường (VD: HN - NA)
-        public Routes Route { get; set; }
+        public Routes? Route { get; set; }
         [Required]
         public int BusId { get; set; } // Khối xe nào chạy khung giờ này mặc định (VD: 37B-12345)
-        public Buses Bus { get; set; }
+        public Buses? Bus { get; set; }
         [Required]
         public TimeSpan DepartureTime { get; set; } // Giờ xuất phát (VD: 08:00:00)
         [Required]

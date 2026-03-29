@@ -16,7 +16,9 @@ namespace BookingTicket.Application.Mappings
                 .ForMember(dest => dest.ArrivalTime, opt => opt.MapFrom(src => src.ArrivalTime.ToString(@"hh\:mm")));
 
             // DTO -> Entity
-            CreateMap<CreateScheduleDto, Schedules>();
+            CreateMap<CreateScheduleDto, Schedules>()
+                .ForMember(dest => dest.DepartureTime, opt => opt.MapFrom(src => TimeSpan.Parse(src.DepartureTime)))
+                .ForMember(dest => dest.ArrivalTime, opt => opt.MapFrom(src => TimeSpan.Parse(src.ArrivalTime)));
         }
     }
 }

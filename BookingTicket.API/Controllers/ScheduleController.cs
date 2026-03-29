@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace BookingTicket.API.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/Schedule")]
     [ApiController]
     public class ScheduleController : ControllerBase
     {

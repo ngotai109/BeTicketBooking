@@ -20,6 +20,7 @@ namespace BookingTicket.Application.Interfaces.IServices
         DbSet<Tickets> Tickets { get; }
         DbSet<Payments> Payments { get; }
         DbSet<PaymentMethods> PaymentMethods { get; }
+        DbSet<Schedules> Schedules { get; }
         DbSet<IdentityUserToken<string>> UserTokens { get; }
         
         Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
