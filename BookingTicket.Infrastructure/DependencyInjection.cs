@@ -3,6 +3,7 @@ using BookingTicket.Infrastructure.Data;
 using Microsoft.Extensions.DependencyInjection;
 using BookingTicket.Application.Interfaces.IRepositories;
 using BookingTicket.Application.Interfaces.IServices;
+using BookingTicket.Infrastructure.Services;
 
 
 namespace BookingTicket.Infrastructure
@@ -31,6 +32,7 @@ namespace BookingTicket.Infrastructure
             services.AddScoped<ISeatRepository, SeatRepository>();
             services.AddScoped<ITripSeatRepository, TripSeatRepository>();
             services.AddScoped<ITicketRepository, TicketRepository>();
+            services.AddScoped<IEmailService, EmailService>();
 
             return services;
         }   

@@ -15,6 +15,9 @@ namespace BookingTicket.Application.DTOs.Trip
         public int AvailableSeats { get; set; }
         public int TotalSeats { get; set; }
         public int Status { get; set; } // 0: Sắp chạy, 1: Đang đi, 2: Hoàn thành
+        public decimal TicketPrice { get; set; }
+        public string DepartureOfficeName { get; set; }
+        public string ArrivalOfficeName { get; set; }
     }
 
     public class TripSeatDetailDto
@@ -25,7 +28,7 @@ namespace BookingTicket.Application.DTOs.Trip
         public int Floor { get; set; }
         public int Row { get; set; }
         public int Column { get; set; }
-        
+
         // Extended info
         public string CustomerName { get; set; }
         public string PhoneNumber { get; set; }

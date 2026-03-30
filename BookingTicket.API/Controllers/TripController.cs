@@ -31,8 +31,23 @@ namespace BookingTicket.API.Controllers
             return Ok(result);
         }
 
+        [HttpGet("search")]
+        public async Task<ActionResult<IEnumerable<TripMonitoringDto>>> Search([FromQuery] string departure, [FromQuery] string destination, [FromQuery] string date)
+        {
+            DateTime? parsedDate = null;
+            if (DateTime.TryParse(date, out var d))
+            {
+                parsedDate = d;
+            }
+
+            if (parsedDate == null) return BadRequest(new { message = "Ngày tìm kiếm không hợp lệ." });
+
+            var result = await _tripService.SearchTripsAsync(departure, destination, parsedDate.Value);
+            return Ok(result);
+        }
+
         [HttpGet("{id}/seats")]
-        public async Task<ActionResult<IEnumerable<TripSeatDetailDto>>> GetSeats(int id)
+        public async Task<ActionResult<IEnumerable<TripSeatDetailDto>>> GetSeats([FromRoute] int id)
         {
             var result = await _tripService.GetTripSeatDetailsAsync(id);
             return Ok(result);

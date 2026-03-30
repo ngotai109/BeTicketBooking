@@ -17,6 +17,7 @@ namespace BookingTicket.Application.Services
         private readonly ITicketRepository _ticketRepository;
         private readonly ITripSeatRepository _tripSeatRepository;
         private readonly ITripRepository _tripRepository;
+        private readonly IEmailService _emailService;
         private readonly IMapper _mapper;
 
         public BookingService(
@@ -24,12 +25,14 @@ namespace BookingTicket.Application.Services
             ITicketRepository ticketRepository,
             ITripSeatRepository tripSeatRepository,
             ITripRepository tripRepository,
+            IEmailService emailService,
             IMapper mapper)
         {
             _bookingRepository = bookingRepository;
             _ticketRepository = ticketRepository;
             _tripSeatRepository = tripSeatRepository;
             _tripRepository = tripRepository;
+            _emailService = emailService;
             _mapper = mapper;
         }
 
@@ -41,10 +44,10 @@ namespace BookingTicket.Application.Services
             // 1. Validate Seats
             foreach (var seatId in request.TripSeatIds)
             {
-                var seat = await _tripSeatRepository.GetByIdAsync(seatId);
+                var seat = await _tripSeatRepository.GetByIdWithDetailsAsync(seatId);
                 if (seat == null || seat.Status != SeatStatus.Available)
                 {
-                    return null; // One of the seats is not available anymore
+                    return null; // Seat is unavailable or already booked
                 }
                 tripSeats.Add(seat);
                 
@@ -83,13 +86,52 @@ namespace BookingTicket.Application.Services
                 };
                 await _ticketRepository.AddAsync(ticket);
             }
+            
+            var result = await GetBookingByIdAsync(booking.BookingId);
 
-            return await GetBookingByIdAsync(booking.BookingId);
+            // 4. Send Email Confirmation
+            if (result != null && !string.IsNullOrEmpty(booking.CustomerEmail))
+            {
+                // We use another Task to NOT block the checkout response
+                _ = Task.Run(async () => {
+                    try
+                    {
+                        var firstSeat = tripSeats.FirstOrDefault();
+                        // Refresh trip data to get Route info if not loaded
+                        var tripWithDetails = firstSeat != null ? await _tripRepository.GetByIdAsync(firstSeat.TripId) : null;
+                        
+                        string seats = string.Join(", ", result.Tickets.Select(t => t.SeatNumber));
+                        string routeName = tripWithDetails?.Route?.RouteName ?? "Thông tin tuyến đang cập nhật";
+                        string depTime = tripWithDetails != null 
+                            ? $"{tripWithDetails.DepartureTime:HH:mm} ngày {tripWithDetails.DepartureTime:dd/MM/yyyy}" 
+                            : "Đang cập nhật";
+
+                        await _emailService.SendTicketConfirmationAsync(
+                            booking.CustomerEmail,
+                            booking.CustomerName,
+                            $"DSL{booking.BookingId:D6}",
+                            routeName,
+                            depTime,
+                            seats,
+                            booking.TotalPrice
+                        );
+                    }
+                    catch (Exception ex)
+                    {
+                        // Internal logging, won't affect HTTP response
+                        Console.WriteLine("---- LỖI GỬI EMAIL: ----");
+                        Console.WriteLine(ex.Message);
+                        Console.WriteLine("-------------------------");
+                    }
+                });
+            }
+
+            return result;
         }
 
         public async Task<BookingDto?> GetBookingByIdAsync(int bookingId)
         {
-            var booking = await _bookingRepository.GetByIdAsync(bookingId);
+            var booking = await _bookingRepository.GetByIdWithDetailsAsync(bookingId);
             if (booking == null) return null;
 
             return new BookingDto

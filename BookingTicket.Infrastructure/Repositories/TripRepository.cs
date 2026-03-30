@@ -18,9 +18,9 @@ namespace BookingTicket.Infrastructure.Repositories
         public async Task<IEnumerable<Trips>> GetTripsWithDetailsAsync(DateTime? date, int? routeId)
         {
             var query = _context.Trips
-                .Include(t => t.Route)
-                .Include(t => t.Bus)
-                .ThenInclude(b => b.BusType)
+                .Include(t => t.Route).ThenInclude(r => r.DepartureOffice).ThenInclude(o => o.Ward)
+                .Include(t => t.Route).ThenInclude(r => r.ArrivalOffice).ThenInclude(o => o.Ward)
+                .Include(t => t.Bus).ThenInclude(b => b.BusType)
                 .AsQueryable();
 
             if (date.HasValue)

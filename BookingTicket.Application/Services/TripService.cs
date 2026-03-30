@@ -36,27 +36,7 @@ namespace BookingTicket.Application.Services
 
             foreach (var trip in trips)
             {
-                // We'll use the Repository to query TripSeats
-                var allTripSeats = await _tripSeatRepository.GetAllAsync();
-                var specificTripSeats = allTripSeats.Where(ts => ts.TripId == trip.TripId).ToList();
-                
-                var totalSeats = specificTripSeats.Count;
-                var bookedSeats = specificTripSeats.Count(ts => ts.Status == SeatStatus.Booked);
-
-                result.Add(new TripMonitoringDto
-                {
-                    TripId = trip.TripId,
-                    RouteId = trip.RouteId,
-                    RouteName = trip.Route?.RouteName,
-                    DepartureTime = trip.DepartureTime.ToString(@"hh\:mm"),
-                    ArrivalTime = trip.ArrivalTime.ToString(@"hh\:mm"),
-                    BusId = trip.BusId,
-                    BusPlate = trip.Bus?.PlateNumber,
-                    BusType = trip.Bus?.BusType?.TypeName,
-                    TotalSeats = totalSeats,
-                    AvailableSeats = totalSeats - bookedSeats,
-                    Status = (int)trip.Status
-                });
+                result.Add(await MapToMonitoringDto(trip));
             }
 
             return result;
@@ -64,18 +44,20 @@ namespace BookingTicket.Application.Services
 
         public async Task<IEnumerable<TripSeatDetailDto>> GetTripSeatDetailsAsync(int tripId)
         {
-            var allTripSeats = await _tripSeatRepository.GetAllAsync();
-            return allTripSeats
-                .Where(ts => ts.TripId == tripId)
-                .Select(ts => new TripSeatDetailDto
-                {
-                    TripSeatId = ts.TripSeatId,
-                    SeatNumber = ts.Seat?.SeatNumber ?? "N/A",
-                    Status = (int)ts.Status,
-                    Floor = ts.Seat?.Floor ?? 1,
-                    Row = ts.Seat?.Row ?? 0,
-                    Column = ts.Seat?.Column ?? 0
-                }).ToList();
+            // Ensure seats exist before returning them
+            await EnsureTripSeatsExistAsync(tripId);
+
+            var tripSeats = await _tripSeatRepository.GetSeatsByTripIdAsync(tripId);
+
+            return tripSeats.Select(ts => new TripSeatDetailDto
+            {
+                TripSeatId = ts.TripSeatId,
+                SeatNumber = ts.Seat?.SeatNumber ?? $"#{ts.SeatId}",
+                Status = (int)ts.Status,
+                Floor = ts.Seat?.Floor ?? 1,
+                Row = ts.Seat?.Row ?? 0,
+                Column = ts.Seat?.Column ?? 0
+            }).ToList();
         }
 
         public async Task<bool> QuickBookSeatAsync(int tripSeatId, string customerName, string phoneNumber, int status)
@@ -84,7 +66,7 @@ namespace BookingTicket.Application.Services
             if (tripSeat == null) return false;
 
             tripSeat.Status = status == 1 ? SeatStatus.Booked : SeatStatus.Booked;
-            
+
             await _tripSeatRepository.UpdateAsync(tripSeat);
             return true;
         }
@@ -95,7 +77,6 @@ namespace BookingTicket.Application.Services
             var activeSchedules = allSchedules.Where(s => s.IsActive).ToList();
             if (!activeSchedules.Any()) return false;
 
-            var allSeats = await _seatRepository.GetAllAsync();
             var allTrips = await _tripRepository.GetAllAsync();
 
             bool tripsAdded = false;
@@ -104,12 +85,12 @@ namespace BookingTicket.Application.Services
             {
                 foreach (var schedule in activeSchedules)
                 {
-                    bool exists = allTrips.Any(t => t.ScheduleId == schedule.ScheduleId 
+                    bool exists = allTrips.Any(t => t.ScheduleId == schedule.ScheduleId
                                                  && t.DepartureTime.Date == date.Date);
 
                     if (!exists)
                     {
-                        await CreateNewTripFromSchedule(schedule, date, allSeats);
+                        await CreateNewTripFromSchedule(schedule, date);
                         tripsAdded = true;
                     }
                 }
@@ -127,8 +108,7 @@ namespace BookingTicket.Application.Services
             bool exists = allTrips.Any(t => t.ScheduleId == scheduleId && t.DepartureTime.Date == departureDate.Date);
             if (exists) return false;
 
-            var allSeats = await _seatRepository.GetAllAsync();
-            await CreateNewTripFromSchedule(schedule, departureDate, allSeats);
+            await CreateNewTripFromSchedule(schedule, departureDate);
 
             return true;
         }
@@ -152,12 +132,98 @@ namespace BookingTicket.Application.Services
             return true;
         }
 
-        private async Task CreateNewTripFromSchedule(Schedules schedule, DateTime date, IEnumerable<Seats> allSeats)
+        public async Task<IEnumerable<TripMonitoringDto>> SearchTripsAsync(string departure, string destination, DateTime date)
+        {
+            var trips = await _tripRepository.GetTripsWithDetailsAsync(date, null);
+
+            var depSearch = RemoveDiacritics(departure ?? "").ToLower();
+            var destSearch = RemoveDiacritics(destination ?? "").ToLower();
+
+            var filteredTrips = trips.Where(t =>
+            {
+                var routeName = RemoveDiacritics(t.Route?.RouteName ?? "").ToLower();
+                var depOfficeName = RemoveDiacritics(t.Route?.DepartureOffice?.OfficeName ?? "").ToLower();
+                var depWardName = RemoveDiacritics(t.Route?.DepartureOffice?.Ward?.WardName ?? "").ToLower();
+                var arrOfficeName = RemoveDiacritics(t.Route?.ArrivalOffice?.OfficeName ?? "").ToLower();
+                var arrWardName = RemoveDiacritics(t.Route?.ArrivalOffice?.Ward?.WardName ?? "").ToLower();
+
+                bool depMatch = string.IsNullOrWhiteSpace(depSearch) ||
+                               routeName.Contains(depSearch) ||
+                               depOfficeName.Contains(depSearch) ||
+                               depWardName.Contains(depSearch);
+
+                bool destMatch = string.IsNullOrWhiteSpace(destSearch) ||
+                                routeName.Contains(destSearch) ||
+                                arrOfficeName.Contains(destSearch) ||
+                                arrWardName.Contains(destSearch);
+
+                return depMatch && destMatch;
+            }).ToList();
+
+            var result = new List<TripMonitoringDto>();
+            foreach (var trip in filteredTrips)
+            {
+                result.Add(await MapToMonitoringDto(trip));
+            }
+
+            return result;
+        }
+
+        private async Task<TripMonitoringDto> MapToMonitoringDto(Trips trip)
+        {
+            // Ensure seats exist for this trip
+            await EnsureTripSeatsExistAsync(trip.TripId);
+            
+            var tripSeats = await _tripSeatRepository.GetSeatsByTripIdAsync(trip.TripId);
+            var specificTripSeats = tripSeats.ToList();
+
+            var totalSeats = specificTripSeats.Count;
+            var bookedSeats = specificTripSeats.Count(ts => ts.Status == SeatStatus.Booked);
+            var busType = trip.Bus?.BusType?.TypeName ?? "N/A";
+
+            return new TripMonitoringDto
+            {
+                TripId = trip.TripId,
+                RouteId = trip.RouteId,
+                RouteName = trip.Route?.RouteName,
+                DepartureTime = trip.DepartureTime.ToString(@"HH\:mm"),
+                ArrivalTime = trip.ArrivalTime.ToString(@"HH\:mm"),
+                BusId = trip.BusId,
+                BusPlate = trip.Bus?.PlateNumber,
+                BusType = busType,
+                TotalSeats = totalSeats,
+                AvailableSeats = totalSeats - bookedSeats,
+                Status = (int)trip.Status,
+                TicketPrice = trip.TicketPrice,
+                DepartureOfficeName = trip.Route?.DepartureOffice?.OfficeName,
+                ArrivalOfficeName = trip.Route?.ArrivalOffice?.OfficeName
+            };
+        }
+
+        private string RemoveDiacritics(string text)
+        {
+            if (string.IsNullOrWhiteSpace(text)) return text;
+            var normalizedString = text.Normalize(System.Text.NormalizationForm.FormD);
+            var stringBuilder = new System.Text.StringBuilder();
+
+            foreach (var c in normalizedString)
+            {
+                var unicodeCategory = System.Globalization.CharUnicodeInfo.GetUnicodeCategory(c);
+                if (unicodeCategory != System.Globalization.UnicodeCategory.NonSpacingMark)
+                {
+                    stringBuilder.Append(c);
+                }
+            }
+
+            return stringBuilder.ToString().Normalize(System.Text.NormalizationForm.FormC);
+        }
+
+        private async Task<Trips> CreateNewTripFromSchedule(Schedules schedule, DateTime date)
         {
             var departureTime = date.Add(schedule.DepartureTime);
             var arrivalTime = date.Add(schedule.ArrivalTime);
-            
-            // Handle cross-day trips
+
+
             if (schedule.ArrivalTime < schedule.DepartureTime)
             {
                 arrivalTime = arrivalTime.AddDays(1);
@@ -166,16 +232,43 @@ namespace BookingTicket.Application.Services
             var newTrip = new Trips
             {
                 ScheduleId = schedule.ScheduleId,
-                TicketPrice = schedule.TicketPrice,
-                DepartureTime = departureTime,
-                ArrivalTime = arrivalTime,
-                Status = TripStatus.Scheduled,
                 BusId = schedule.BusId,
                 RouteId = schedule.RouteId,
-                TripSeats = new List<TripSeats>()
+                DepartureTime = departureTime,
+                ArrivalTime = arrivalTime,
+                TicketPrice = schedule.TicketPrice,
+                TripSeats = new List<TripSeats>(),
+                Status = TripStatus.Scheduled
             };
 
+            // UPFRONT SEAT GENERATION: Prepare seats for "Real Booking"
+            var allSeats = await _seatRepository.GetAllAsync();
             var busSeats = allSeats.Where(s => s.BusId == schedule.BusId && s.IsActive).ToList();
+
+            // IF BUS HAS NO SEATS: Generate 40 default seats for this bus UPFRONT!
+            if (!busSeats.Any())
+            {
+                var defaultSeats = new List<string> { 
+                    "A1", "A2", "A3", "A4", "A5", "A6", "A7", "A8", "A9", "A10",
+                    "B1", "B2", "B3", "B4", "B5", "B6", "B7", "B8", "B9", "B10",
+                    "C1", "C2", "C3", "C4", "C5", "C6", "C7", "C8", "C9", "C10",
+                    "D1", "D2", "D3", "D4", "D5", "D6", "D7", "D8", "D9", "D10"
+                };
+
+                foreach (var sNum in defaultSeats)
+                {
+                    var newSeat = new Seats
+                    {
+                        BusId = schedule.BusId,
+                        SeatNumber = sNum,
+                        Floor = sNum.StartsWith("A") || sNum.StartsWith("B") ? 1 : 2,
+                        IsActive = true
+                    };
+                    await _seatRepository.AddAsync(newSeat);
+                    busSeats.Add(newSeat);
+                }
+            }
+
             foreach (var seat in busSeats)
             {
                 newTrip.TripSeats.Add(new TripSeats
@@ -186,6 +279,60 @@ namespace BookingTicket.Application.Services
             }
 
             await _tripRepository.AddAsync(newTrip);
+            return newTrip;
+        }
+
+        private async Task EnsureTripSeatsExistAsync(int tripId)
+        {
+            var currentSeats = await _tripSeatRepository.GetSeatsByTripIdAsync(tripId);
+            if (!currentSeats.Any())
+            {
+                var trip = await _tripRepository.GetByIdAsync(tripId);
+                if (trip != null && trip.BusId > 0)
+                {
+                    var allSeats = await _seatRepository.GetAllAsync();
+                    var busSeats = allSeats.Where(s => s.BusId == trip.BusId && s.IsActive).ToList();
+                    
+                    // IF BUS HAS NO SEATS: Generate 40 default seats for this bus first!
+                    if (!busSeats.Any())
+                    {
+                        var defaultSeats = new List<string> { 
+                            "A1", "A2", "A3", "A4", "A5", "A6", "A7", "A8", "A9", "A10",
+                            "B1", "B2", "B3", "B4", "B5", "B6", "B7", "B8", "B9", "B10",
+                            "C1", "C2", "C3", "C4", "C5", "C6", "C7", "C8", "C9", "C10",
+                            "D1", "D2", "D3", "D4", "D5", "D6", "D7", "D8", "D9", "D10"
+                        };
+
+                        var newSeats = new List<Seats>();
+                        foreach (var sNum in defaultSeats)
+                        {
+                            var newSeat = new Seats
+                            {
+                                BusId = trip.BusId,
+                                SeatNumber = sNum,
+                                Floor = sNum.StartsWith("A") || sNum.StartsWith("B") ? 1 : 2,
+                                IsActive = true
+                            };
+                            await _seatRepository.AddAsync(newSeat);
+                            newSeats.Add(newSeat);
+                        }
+                        busSeats = newSeats;
+                    }
+
+                    if (busSeats.Any())
+                    {
+                        foreach (var seat in busSeats)
+                        {
+                            await _tripSeatRepository.AddAsync(new TripSeats
+                            {
+                                TripId = tripId,
+                                SeatId = seat.SeatId,
+                                Status = SeatStatus.Available
+                            });
+                        }
+                    }
+                }
+            }
         }
     }
 }

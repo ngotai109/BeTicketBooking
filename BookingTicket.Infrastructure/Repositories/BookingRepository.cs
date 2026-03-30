@@ -33,5 +33,15 @@ namespace BookingTicket.Infrastructure.Repositories
                 .Where(b => b.UserId == userId)
                 .SumAsync(b => b.TotalPrice);
         }
+
+        public async Task<Bookings?> GetByIdWithDetailsAsync(int id)
+        {
+            return await _context.Bookings
+                .Include(b => b.User)
+                .Include(b => b.Tickets)
+                    .ThenInclude(t => t.TripSeat)
+                        .ThenInclude(ts => ts.Seat)
+                .FirstOrDefaultAsync(b => b.BookingId == id);
+        }
     }
 }

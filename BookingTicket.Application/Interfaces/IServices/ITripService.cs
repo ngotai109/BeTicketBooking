@@ -14,5 +14,6 @@ namespace BookingTicket.Application.Interfaces.IServices
         Task<bool> CreateTripAsync(int scheduleId, DateTime departureDate);
         Task<bool> UpdateTripStatusAsync(int tripId, int status);
         Task<bool> DeleteTripAsync(int tripId);
+        Task<IEnumerable<TripMonitoringDto>> SearchTripsAsync(string departure, string destination, DateTime date);
     }
 }
