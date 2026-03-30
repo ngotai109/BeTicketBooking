@@ -55,5 +55,13 @@ namespace BookingTicket.API.Controllers
             if (!success) return NotFound(new { message = "Không tìm thấy thông tin đặt vé để cập nhật." });
             return Ok(new { message = "Cập nhật trạng thái booking thành công." });
         }
+
+        [HttpGet("lookup")]
+        public async Task<ActionResult<BookingDto>> Lookup([FromQuery] string code, [FromQuery] string phone)
+        {
+            var result = await _bookingService.GetBookingByCodeAsync(code, phone);
+            if (result == null) return NotFound(new { message = "Không tìm thấy thông tin vé. Vui lòng kiểm tra lại mã vé và số điện thoại." });
+            return Ok(result);
+        }
     }
 }

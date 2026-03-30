@@ -23,6 +23,8 @@ namespace BookingTicket.Application.DTOs.Booking
         public string? CustomerEmail { get; set; }
         public string? UserId { get; set; }
         public string? UserName { get; set; }
+        public string? RouteName { get; set; }
+        public string? DepartureTime { get; set; }
         public List<TicketDto> Tickets { get; set; } = new List<TicketDto>();
     }
 

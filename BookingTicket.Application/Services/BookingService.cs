@@ -129,30 +129,22 @@ namespace BookingTicket.Application.Services
             return result;
         }
 
-        public async Task<BookingDto?> GetBookingByIdAsync(int bookingId)
+        public async Task<int> GetBookingCountByPhoneAsync(string phone)
         {
-            var booking = await _bookingRepository.GetByIdWithDetailsAsync(bookingId);
-            if (booking == null) return null;
+            var bookings = await _bookingRepository.GetAllAsync();
+            return bookings.Count(b => b.CustomerPhone == phone);
+        }
 
-            return new BookingDto
-            {
-                BookingId = booking.BookingId,
-                UserId = booking.UserId,
-                CustomerName = booking.CustomerName,
-                CustomerPhone = booking.CustomerPhone,
-                CustomerEmail = booking.CustomerEmail,
-                BookingDate = booking.BookingDate,
-                TotalPrice = booking.TotalPrice,
-                Status = (int)booking.Status,
-                UserName = booking.User?.FullName,
-                Tickets = booking.Tickets?.Select(t => new TicketDto
-                {
-                    TicketId = t.TicketId,
-                    TripSeatId = t.TripSeatId,
-                    SeatNumber = t.TripSeat?.Seat?.SeatNumber ?? "N/A",
-                    Price = t.Price
-                }).ToList() ?? new List<TicketDto>()
-            };
+        public async Task<BookingDto?> GetBookingByCodeAsync(string code, string phone)
+        {
+            if (string.IsNullOrEmpty(code) || !code.StartsWith("DSL")) return null;
+            if (!int.TryParse(code.Substring(3), out int bookingId)) return null;
+            
+            var booking = await GetBookingByIdAsync(bookingId);
+            if (booking == null) return null;
+            if (booking.CustomerPhone != phone) return null;
+            
+            return booking;
         }
 
         public async Task<IEnumerable<BookingDto>> GetUserBookingsAsync(string userId)
@@ -194,10 +186,46 @@ namespace BookingTicket.Application.Services
             return true;
         }
 
-        public async Task<int> GetBookingCountByPhoneAsync(string phone)
+        public async Task<BookingDto?> GetBookingByIdAsync(int bookingId)
         {
-            var bookings = await _bookingRepository.GetAllAsync();
-            return bookings.Count(b => b.CustomerPhone == phone);
+            var booking = await _bookingRepository.GetByIdWithDetailsAsync(bookingId);
+            if (booking == null) return null;
+
+            var firstTicket = booking.Tickets?.FirstOrDefault();
+            string routeName = "N/A";
+            string depTime = "N/A";
+            
+            if (firstTicket != null)
+            {
+                var trip = await _tripRepository.GetByIdAsync(firstTicket.TripSeat.TripId);
+                if (trip != null)
+                {
+                    routeName = trip.Route?.RouteName ?? "N/A";
+                    depTime = $"{trip.DepartureTime:HH:mm} ngày {trip.DepartureTime:dd/MM/yyyy}";
+                }
+            }
+
+            return new BookingDto
+            {
+                BookingId = booking.BookingId,
+                UserId = booking.UserId,
+                CustomerName = booking.CustomerName,
+                CustomerPhone = booking.CustomerPhone,
+                CustomerEmail = booking.CustomerEmail,
+                BookingDate = booking.BookingDate,
+                TotalPrice = booking.TotalPrice,
+                Status = (int)booking.Status,
+                UserName = booking.User?.FullName,
+                RouteName = routeName,
+                DepartureTime = depTime,
+                Tickets = booking.Tickets?.Select(t => new TicketDto
+                {
+                    TicketId = t.TicketId,
+                    TripSeatId = t.TripSeatId,
+                    SeatNumber = t.TripSeat?.Seat?.SeatNumber ?? "N/A",
+                    Price = t.Price
+                }).ToList() ?? new List<TicketDto>()
+            };
         }
     }
 }
