@@ -23,6 +23,8 @@ namespace BookingTicket.Application
             services.AddScoped<IAIService, AIService>();
             services.AddScoped<IBookingService, BookingService>();
             services.AddScoped<IDashboardService, DashboardService>();
+            services.AddScoped<IEmailService, EmailService>();
+            services.AddHostedService<TripReminderBackgroundService>();
             
             return services;
         }

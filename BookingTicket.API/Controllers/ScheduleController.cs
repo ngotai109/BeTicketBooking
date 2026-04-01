@@ -36,6 +36,9 @@ namespace BookingTicket.API.Controllers
         public async Task<ActionResult<ScheduleDto>> Create([FromBody] CreateScheduleDto createDto)
         {
             var result = await _scheduleService.CreateScheduleAsync(createDto);
+            if (result == null) 
+                return BadRequest(new { message = "Không thể tạo lịch trình. Khung giờ này bị trùng với lịch trình khác của cùng một xe." });
+            
             return CreatedAtAction(nameof(GetById), new { id = result.ScheduleId }, result);
         }
 
@@ -43,7 +46,9 @@ namespace BookingTicket.API.Controllers
         public async Task<ActionResult<ScheduleDto>> Update(int id, [FromBody] CreateScheduleDto updateDto)
         {
             var result = await _scheduleService.UpdateScheduleAsync(id, updateDto);
-            if (result == null) return NotFound(new { message = "Không tìm thấy lịch trình để cập nhật." });
+            if (result == null) 
+                return BadRequest(new { message = "Cập nhật thất bại. Lịch trình không tồn tại hoặc khung giờ mới bị trùng với lịch trình khác của xe." });
+            
             return Ok(result);
         }
 

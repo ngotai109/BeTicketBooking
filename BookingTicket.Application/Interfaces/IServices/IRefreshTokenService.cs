@@ -1,4 +1,4 @@
-﻿using BookingTicket.Domain.Entities;
+using BookingTicket.Domain.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,6 +12,6 @@ namespace BookingTicket.Application.Interfaces.IServices
         Task<string> GenerateAndSaveAsync(ApplicationUser user);
         Task<bool> ValidateAsync(ApplicationUser user, string refreshToken);
         Task RevokeAsync(ApplicationUser user);
-        Task<ApplicationUser> GetUserByRefreshTokenAsync(string refreshToken);
+        Task<ApplicationUser?> GetUserByRefreshTokenAsync(string refreshToken);
     }
 }

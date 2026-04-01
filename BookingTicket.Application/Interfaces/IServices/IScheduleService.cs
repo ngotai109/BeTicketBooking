@@ -8,7 +8,7 @@ namespace BookingTicket.Application.Interfaces.IServices
     {
         Task<IEnumerable<ScheduleDto>> GetAllSchedulesAsync();
         Task<ScheduleDto?> GetScheduleByIdAsync(int id);
-        Task<ScheduleDto> CreateScheduleAsync(CreateScheduleDto createScheduleDto);
+        Task<ScheduleDto?> CreateScheduleAsync(CreateScheduleDto createScheduleDto);
         Task<ScheduleDto?> UpdateScheduleAsync(int id, CreateScheduleDto updateScheduleDto);
         Task<bool> DeleteScheduleAsync(int id);
         Task<ScheduleDto?> ToggleActiveScheduleAsync(int id);

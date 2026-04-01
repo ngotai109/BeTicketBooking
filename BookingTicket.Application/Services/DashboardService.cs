@@ -118,6 +118,31 @@ namespace BookingTicket.Application.Services
             };
         }
 
+        public async Task<byte[]> ExportRevenueReportAsync(int month, int year)
+        {
+            var start = new DateTime(year, month, 1);
+            var end = start.AddMonths(1);
+
+            var confirmedBookings = await _bookingRepository.GetAllAsync();
+            var bookingsThisMonth = confirmedBookings
+                .Where(b => b.Status != BookingStatus.Cancelled && b.BookingDate >= start && b.BookingDate < end)
+                .OrderBy(b => b.BookingDate)
+                .ToList();
+
+            var csv = new System.Text.StringBuilder();
+            // UTF-8 BOM
+            csv.Append('\uFEFF');
+            csv.AppendLine("Mã đặt vé,Ngày đặt,Khách hàng,Số điện thoại,Tổng tiền,Trạng thái");
+
+            foreach (var b in bookingsThisMonth)
+            {
+                var statusLabel = b.Status == BookingStatus.Completed ? "Đã hoàn thành" : b.Status == BookingStatus.Confirmed ? "Đã xác nhận" : "Chờ xử lý";
+                csv.AppendLine($"BTK{b.BookingId:D5},{b.BookingDate:dd/MM/yyyy HH:mm},\"{b.CustomerName}\",{b.CustomerPhone},{b.TotalPrice},\"{statusLabel}\"");
+            }
+
+            return System.Text.Encoding.UTF8.GetBytes(csv.ToString());
+        }
+
         private string GetStatusLabel(TripStatus status)
         {
             return status switch

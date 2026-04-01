@@ -6,5 +6,6 @@ namespace BookingTicket.Application.Interfaces.IServices
     public interface IDashboardService
     {
         Task<DashboardStatsDto> GetDashboardStatsAsync(int? month = null, int? year = null);
+        Task<byte[]> ExportRevenueReportAsync(int month, int year);
     }
 }

@@ -22,5 +22,13 @@ namespace BookingTicket.API.Controllers
             var result = await _dashboardService.GetDashboardStatsAsync(month, year);
             return Ok(result);
         }
+
+        [HttpGet("export-revenue")]
+        public async Task<IActionResult> ExportRevenue([FromQuery] int month, [FromQuery] int year)
+        {
+            var csvBytes = await _dashboardService.ExportRevenueReportAsync(month, year);
+            var fileName = $"BaoCaoDoanhThu_{month}_{year}.csv";
+            return File(csvBytes, "text/csv", fileName);
+        }
     }
 }

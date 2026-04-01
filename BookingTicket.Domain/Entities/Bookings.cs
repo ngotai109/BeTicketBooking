@@ -14,6 +14,7 @@ namespace BookingTicket.Domain.Entities
         [Column(TypeName = "decimal(18,2)")]
         public decimal TotalPrice { get; set; }
         public BookingStatus Status { get; set; } = BookingStatus.Pending;
+        public bool IsReminderSent { get; set; } = false;
 
         // Thông tin khách hàng (Dành cho khách vãng lai)
         public string CustomerName { get; set; } = string.Empty;

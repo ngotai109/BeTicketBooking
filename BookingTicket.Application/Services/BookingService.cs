@@ -18,7 +18,6 @@ namespace BookingTicket.Application.Services
         private readonly ITripSeatRepository _tripSeatRepository;
         private readonly ITripRepository _tripRepository;
         private readonly IEmailService _emailService;
-        private readonly IZaloService _zaloService;
         private readonly IMapper _mapper;
  
         public BookingService(
@@ -27,7 +26,6 @@ namespace BookingTicket.Application.Services
             ITripSeatRepository tripSeatRepository,
             ITripRepository tripRepository,
             IEmailService emailService,
-            IZaloService zaloService,
             IMapper mapper)
         {
             _bookingRepository = bookingRepository;
@@ -35,7 +33,6 @@ namespace BookingTicket.Application.Services
             _tripSeatRepository = tripSeatRepository;
             _tripRepository = tripRepository;
             _emailService = emailService;
-            _zaloService = zaloService;
             _mapper = mapper;
         }
 
@@ -112,17 +109,6 @@ namespace BookingTicket.Application.Services
 
                         await _emailService.SendTicketConfirmationAsync(
                             booking.CustomerEmail,
-                            booking.CustomerName,
-                            $"DSL{booking.BookingId:D6}",
-                            routeName,
-                            depTime,
-                            seats,
-                            booking.TotalPrice
-                        );
-
-                        // 5. Send Zalo ZNS Confirmation
-                        await _zaloService.SendBookingConfirmationAsync(
-                            booking.CustomerPhone,
                             booking.CustomerName,
                             $"DSL{booking.BookingId:D6}",
                             routeName,
