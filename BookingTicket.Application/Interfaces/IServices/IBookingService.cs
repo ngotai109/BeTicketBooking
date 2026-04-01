@@ -13,5 +13,6 @@ namespace BookingTicket.Application.Interfaces.IServices
         Task<bool> UpdateBookingStatusAsync(int bookingId, int status);
         Task<int> GetBookingCountByPhoneAsync(string phone);
         Task<BookingDto?> GetBookingByCodeAsync(string code, string phone);
+        Task<IEnumerable<PassengerStatisticDto>> GetPassengersStatisticAsync();
     }
 }

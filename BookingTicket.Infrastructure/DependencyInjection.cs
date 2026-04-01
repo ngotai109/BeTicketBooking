@@ -33,6 +33,9 @@ namespace BookingTicket.Infrastructure
             services.AddScoped<ITripSeatRepository, TripSeatRepository>();
             services.AddScoped<ITicketRepository, TicketRepository>();
             services.AddScoped<IEmailService, EmailService>();
+            services.AddScoped<IZaloService, ZaloService>();
+            
+            services.AddHttpClient<IZaloService, ZaloService>();
 
             return services;
         }   

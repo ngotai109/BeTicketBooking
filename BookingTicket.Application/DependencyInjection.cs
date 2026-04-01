@@ -22,6 +22,7 @@ namespace BookingTicket.Application
             services.AddScoped<ITripService, TripService>();
             services.AddScoped<IAIService, AIService>();
             services.AddScoped<IBookingService, BookingService>();
+            services.AddScoped<IDashboardService, DashboardService>();
             
             return services;
         }

@@ -63,5 +63,12 @@ namespace BookingTicket.API.Controllers
             if (result == null) return NotFound(new { message = "Không tìm thấy thông tin vé. Vui lòng kiểm tra lại mã vé và số điện thoại." });
             return Ok(result);
         }
+
+        [HttpGet("passengers")]
+        public async Task<ActionResult<IEnumerable<PassengerStatisticDto>>> GetPassengers()
+        {
+            var result = await _bookingService.GetPassengersStatisticAsync();
+            return Ok(result);
+        }
     }
 }

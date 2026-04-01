@@ -18,14 +18,16 @@ namespace BookingTicket.Application.Services
         private readonly ITripSeatRepository _tripSeatRepository;
         private readonly ITripRepository _tripRepository;
         private readonly IEmailService _emailService;
+        private readonly IZaloService _zaloService;
         private readonly IMapper _mapper;
-
+ 
         public BookingService(
             IBookingRepository bookingRepository,
             ITicketRepository ticketRepository,
             ITripSeatRepository tripSeatRepository,
             ITripRepository tripRepository,
             IEmailService emailService,
+            IZaloService zaloService,
             IMapper mapper)
         {
             _bookingRepository = bookingRepository;
@@ -33,8 +35,10 @@ namespace BookingTicket.Application.Services
             _tripSeatRepository = tripSeatRepository;
             _tripRepository = tripRepository;
             _emailService = emailService;
+            _zaloService = zaloService;
             _mapper = mapper;
         }
+
 
         public async Task<BookingDto?> CreateBookingAsync(CreateBookingDto request)
         {
@@ -115,7 +119,19 @@ namespace BookingTicket.Application.Services
                             seats,
                             booking.TotalPrice
                         );
+
+                        // 5. Send Zalo ZNS Confirmation
+                        await _zaloService.SendBookingConfirmationAsync(
+                            booking.CustomerPhone,
+                            booking.CustomerName,
+                            $"DSL{booking.BookingId:D6}",
+                            routeName,
+                            depTime,
+                            seats,
+                            booking.TotalPrice
+                        );
                     }
+
                     catch (Exception ex)
                     {
                         // Internal logging, won't affect HTTP response
@@ -226,6 +242,29 @@ namespace BookingTicket.Application.Services
                     Price = t.Price
                 }).ToList() ?? new List<TicketDto>()
             };
+        }
+
+        public async Task<IEnumerable<PassengerStatisticDto>> GetPassengersStatisticAsync()
+        {
+            var bookings = await _bookingRepository.GetAllAsync();
+            var passengers = bookings
+                .Where(b => !string.IsNullOrEmpty(b.CustomerPhone))
+                .GroupBy(b => b.CustomerPhone)
+                .Select(g => new PassengerStatisticDto
+                {
+                    Id = g.Key,
+                    PhoneNumber = g.Key,
+                    Email = g.OrderByDescending(x => x.BookingDate).FirstOrDefault()?.CustomerEmail,
+                    FullName = g.OrderByDescending(x => x.BookingDate).FirstOrDefault()?.CustomerName ?? "Khách hàng",
+                    TotalBookings = g.Count(),
+                    TotalSpent = g.Where(x => x.Status != BookingStatus.Cancelled).Sum(x => x.TotalPrice),
+                    LastBooking = g.Max(x => x.BookingDate).ToString("yyyy-MM-dd"),
+                    Status = "Active"
+                })
+                .OrderByDescending(p => p.LastBooking)
+                .ToList();
+
+            return passengers;
         }
     }
 }
