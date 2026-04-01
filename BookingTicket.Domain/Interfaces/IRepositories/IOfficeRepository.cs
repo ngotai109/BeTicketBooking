@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using BookingTicket.Domain.Entities;
 
-namespace BookingTicket.Application.Interfaces.IRepositories
+namespace BookingTicket.Domain.Interfaces.IRepositories
 {
     public interface IOfficeRepository : IGenericRepository<Office>
     {

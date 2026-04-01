@@ -1,5 +1,5 @@
 using BookingTicket.Application.DTOs.Province;
-using BookingTicket.Application.Interfaces.IRepositories;
+using BookingTicket.Domain.Interfaces.IRepositories;
 using BookingTicket.Domain.Entities;
 using BookingTicket.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;

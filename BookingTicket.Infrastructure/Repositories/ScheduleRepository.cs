@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
-using BookingTicket.Application.Interfaces.IRepositories;
+using BookingTicket.Domain.Interfaces.IRepositories;
 using BookingTicket.Domain.Entities;
 using BookingTicket.Infrastructure.Data;
 

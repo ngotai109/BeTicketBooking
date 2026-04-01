@@ -1,7 +1,7 @@
 using AutoMapper;
 using BookingTicket.Application.DTOs.Bus;
 using BookingTicket.Application.DTOs.Route;
-using BookingTicket.Application.Interfaces.IRepositories;
+using BookingTicket.Domain.Interfaces.IRepositories;
 using BookingTicket.Application.Interfaces.IServices;
 using BookingTicket.Domain.Entities;
 using BookingTicket.Domain.Enums;

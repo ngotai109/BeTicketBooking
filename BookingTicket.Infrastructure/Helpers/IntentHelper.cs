@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -15,19 +15,19 @@ namespace BookingTicket.Infrastructure.Helpers
 
             message = message.ToLower();
 
-            if (message.Contains("đặt vé") || message.Contains("mua vé"))
+            if (message.Contains("d?t v�") || message.Contains("mua v�"))
                 return "book_ticket";
 
-            if (message.Contains("đi") || message.Contains("chuyến"))
+            if (message.Contains("di") || message.Contains("chuy?n"))
                 return "search_trip";
 
-            if (message.Contains("văn phòng") || message.Contains("địa chỉ"))
+            if (message.Contains("van ph�ng") || message.Contains("d?a ch?"))
                 return "office_info";
 
-            if (message.Contains("hủy"))
+            if (message.Contains("h?y"))
                 return "cancel_ticket";
 
-            if (message.Contains("chào") || message.Contains("hello"))
+            if (message.Contains("ch�o") || message.Contains("hello"))
                 return "small_talk";
 
             return "out_of_scope";

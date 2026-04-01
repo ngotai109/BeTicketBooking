@@ -1,5 +1,5 @@
 using BookingTicket.Application.DTOs.User;
-using BookingTicket.Application.Interfaces.IRepositories;
+using BookingTicket.Domain.Interfaces.IRepositories;
 using BookingTicket.Application.Interfaces.IServices;
 using System;
 using System.Collections.Generic;

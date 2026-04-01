@@ -12,7 +12,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using BookingTicket.Application.Interfaces.IServices;
-using BookingTicket.Application.Interfaces.IRepositories;
+using BookingTicket.Domain.Interfaces.IRepositories;
 
 namespace BookingTicket.Application.Services
 {

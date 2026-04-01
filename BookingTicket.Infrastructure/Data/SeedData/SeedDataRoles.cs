@@ -1,4 +1,4 @@
-﻿using BookingTicket.Domain.Entities;
+using BookingTicket.Domain.Entities;
 using Microsoft.AspNetCore.Identity;
 using System;
 using System.Collections.Generic;

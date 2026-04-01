@@ -1,4 +1,4 @@
-using BookingTicket.Application.Interfaces.IRepositories;
+using BookingTicket.Domain.Interfaces.IRepositories;
 using BookingTicket.Domain.Entities;
 using BookingTicket.Domain.Enums;
 using BookingTicket.Infrastructure.Data;

@@ -1,4 +1,4 @@
-﻿using BookingTicket.Application.DTOs.Auth;
+using BookingTicket.Application.DTOs.Auth;
 using FluentValidation;
 
 namespace BookingTicket.Application.Validators.Auth

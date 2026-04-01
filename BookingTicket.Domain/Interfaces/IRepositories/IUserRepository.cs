@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Security.Claims;
 using System.Threading.Tasks;
 
-namespace BookingTicket.Application.Interfaces.IRepositories
+namespace BookingTicket.Domain.Interfaces.IRepositories
 {
     public interface IUserRepository
     {

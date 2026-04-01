@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -16,15 +16,15 @@ namespace BookingTicket.Domain.Entities
             [MaxLength(10)]
             public string SeatNumber { get; set; } // A1, B1, C1...
             [Required]
-            public int Floor { get; set; } // 1: Tầng dưới, 2: Tầng trên
+            public int Floor { get; set; } // 1: T?ng du?i, 2: T?ng tr�n
 
             [Required]
-            public int Row { get; set; } // Vị trí hàng (0, 1, 2, 3...)
+            public int Row { get; set; } // V? tr� h�ng (0, 1, 2, 3...)
 
             [Required]
-            public int Column { get; set; } // Vị trí cột (0, 1, 2...)
+            public int Column { get; set; } // V? tr� c?t (0, 1, 2...)
 
-            public bool IsActive { get; set; } = true; // Trạng thái ghế (VD: ghế hỏng thì false)
+            public bool IsActive { get; set; } = true; // Tr?ng th�i gh? (VD: gh? h?ng th� false)
 
             public int BusId { get; set; }
             public Buses Bus { get; set; }

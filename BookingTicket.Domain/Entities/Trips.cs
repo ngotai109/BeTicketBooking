@@ -1,4 +1,4 @@
-﻿using BookingTicket.Domain.Enums;
+using BookingTicket.Domain.Enums;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;

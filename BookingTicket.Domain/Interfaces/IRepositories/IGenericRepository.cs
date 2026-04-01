@@ -4,7 +4,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 
-namespace BookingTicket.Application.Interfaces.IRepositories
+namespace BookingTicket.Domain.Interfaces.IRepositories
 {
     public interface IGenericRepository<T> where T : class
     {

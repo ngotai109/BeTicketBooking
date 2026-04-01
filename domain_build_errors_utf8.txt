@@ -1,0 +1,19 @@
+﻿  Determining projects to restore...
+  All projects are up-to-date for restore.
+E:\DoAnTotNghiep\BackEnd\BookingTicket.Domain\Interfaces\IRepositories\IAiRepository.cs(6,21): error CS0234: The type or namespace name 'Application' does not exist in the namespace 'BookingTicket' (are you missing an assembly reference?) [E:\DoAnTotNghiep\BackEnd\BookingTicket.Domain\BookingTicket.Domain.csproj]
+E:\DoAnTotNghiep\BackEnd\BookingTicket.Domain\Interfaces\IRepositories\IProvinceRepository.cs(1,21): error CS0234: The type or namespace name 'Application' does not exist in the namespace 'BookingTicket' (are you missing an assembly reference?) [E:\DoAnTotNghiep\BackEnd\BookingTicket.Domain\BookingTicket.Domain.csproj]
+E:\DoAnTotNghiep\BackEnd\BookingTicket.Domain\Interfaces\IRepositories\IVehicalRepository.cs(1,21): error CS0234: The type or namespace name 'Application' does not exist in the namespace 'BookingTicket' (are you missing an assembly reference?) [E:\DoAnTotNghiep\BackEnd\BookingTicket.Domain\BookingTicket.Domain.csproj]
+E:\DoAnTotNghiep\BackEnd\BookingTicket.Domain\Interfaces\IRepositories\IVehicalRepository.cs(2,21): error CS0234: The type or namespace name 'Application' does not exist in the namespace 'BookingTicket' (are you missing an assembly reference?) [E:\DoAnTotNghiep\BackEnd\BookingTicket.Domain\BookingTicket.Domain.csproj]
+E:\DoAnTotNghiep\BackEnd\BookingTicket.Domain\Interfaces\IRepositories\IAiRepository.cs(11,55): error CS0246: The type or namespace name 'ChatMessageDTO' could not be found (are you missing a using directive or an assembly reference?) [E:\DoAnTotNghiep\BackEnd\BookingTicket.Domain\BookingTicket.Domain.csproj]
+
+Build FAILED.
+
+E:\DoAnTotNghiep\BackEnd\BookingTicket.Domain\Interfaces\IRepositories\IAiRepository.cs(6,21): error CS0234: The type or namespace name 'Application' does not exist in the namespace 'BookingTicket' (are you missing an assembly reference?) [E:\DoAnTotNghiep\BackEnd\BookingTicket.Domain\BookingTicket.Domain.csproj]
+E:\DoAnTotNghiep\BackEnd\BookingTicket.Domain\Interfaces\IRepositories\IProvinceRepository.cs(1,21): error CS0234: The type or namespace name 'Application' does not exist in the namespace 'BookingTicket' (are you missing an assembly reference?) [E:\DoAnTotNghiep\BackEnd\BookingTicket.Domain\BookingTicket.Domain.csproj]
+E:\DoAnTotNghiep\BackEnd\BookingTicket.Domain\Interfaces\IRepositories\IVehicalRepository.cs(1,21): error CS0234: The type or namespace name 'Application' does not exist in the namespace 'BookingTicket' (are you missing an assembly reference?) [E:\DoAnTotNghiep\BackEnd\BookingTicket.Domain\BookingTicket.Domain.csproj]
+E:\DoAnTotNghiep\BackEnd\BookingTicket.Domain\Interfaces\IRepositories\IVehicalRepository.cs(2,21): error CS0234: The type or namespace name 'Application' does not exist in the namespace 'BookingTicket' (are you missing an assembly reference?) [E:\DoAnTotNghiep\BackEnd\BookingTicket.Domain\BookingTicket.Domain.csproj]
+E:\DoAnTotNghiep\BackEnd\BookingTicket.Domain\Interfaces\IRepositories\IAiRepository.cs(11,55): error CS0246: The type or namespace name 'ChatMessageDTO' could not be found (are you missing a using directive or an assembly reference?) [E:\DoAnTotNghiep\BackEnd\BookingTicket.Domain\BookingTicket.Domain.csproj]
+    0 Warning(s)
+    5 Error(s)
+
+Time Elapsed 00:00:01.10

@@ -2,7 +2,7 @@ using BookingTicket.Domain.Entities;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace BookingTicket.Application.Interfaces.IRepositories
+namespace BookingTicket.Domain.Interfaces.IRepositories
 {
     public interface IRouteRepository : IGenericRepository<Routes>
     {

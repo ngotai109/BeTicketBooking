@@ -1,5 +1,5 @@
 using BookingTicket.Application.DTOs.Trip;
-using BookingTicket.Application.Interfaces.IRepositories;
+using BookingTicket.Domain.Interfaces.IRepositories;
 using BookingTicket.Application.Interfaces.IServices;
 using BookingTicket.Domain.Entities;
 using BookingTicket.Domain.Enums;

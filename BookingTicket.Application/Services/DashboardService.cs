@@ -1,5 +1,5 @@
 using BookingTicket.Application.DTOs.Dashboard;
-using BookingTicket.Application.Interfaces.IRepositories;
+using BookingTicket.Domain.Interfaces.IRepositories;
 using BookingTicket.Application.Interfaces.IServices;
 using BookingTicket.Domain.Enums;
 using System;

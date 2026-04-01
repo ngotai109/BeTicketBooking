@@ -1,4 +1,4 @@
-using BookingTicket.Domain.Common;
+﻿using BookingTicket.Application.DTOs.AI;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,7 +7,6 @@ using System.Text;
 using System.Threading.Tasks;
 using BookingTicket.Infrastructure.Helpers;
 using BookingTicket.Domain.Interfaces.IRepositories;
-
 namespace BookingTicket.Infrastructure.Repositories
 {
     public class AiRepository : IAiRepository
@@ -22,13 +21,13 @@ namespace BookingTicket.Infrastructure.Repositories
             _provinceRepository = provinceRepository;
             _officeRepository = officeRepository;
         }
-
-        public async Task<string> GetChatResponseAsync(List<ChatMessage> history)
+        public async Task<string> GetChatResponseAsync(List<ChatMessageDTO> history)
         {
             try
             {
                 var lastMessage = history.LastOrDefault()?.Content ?? "";
                 var intent = IntentHelper.DetectIntent(lastMessage);
+
 
                 if (intent == "out_of_scope")
                 {
@@ -37,7 +36,7 @@ namespace BookingTicket.Infrastructure.Repositories
 
                 if (intent == "small_talk")
                 {
-                    return "Xin chào! Mình có thể giúp bạn tìm chuyến xe hoặc đặt vé nè";
+                    return "Xin chào! Mình có th? giúp b?n tìm chuy?n xe ho?c d?t vé ??";
                 }
 
                 var messages = new List<object>();
@@ -46,33 +45,32 @@ namespace BookingTicket.Infrastructure.Repositories
                 {
                     role = "system",
                     content = @"
-                           Bạn là chatbot đặt vé xe của nhà xe 'Đồng Hương Sông Lam'.
-                           NHIỆM VỤ:
-                                     - Tìm chuyến xe
-                                     - Cung cấp thông tin văn phòng
-                                     - Hỗ trợ đặt vé
+                           B?n là chatbot d?t vé xe c?a nhà xe 'Ð?ng Huong Sông Lam'.
+                           NHI?M V?:
+                                     - Tìm chuy?n xe
+                                     - Cung c?p thông tin van phòng
+                                     - H? tr? d?t vé
 
-                           QUY TẮC:
-                                      1. Chỉ sử dụng dữ liệu được cung cấp
-                                      2. Không được tự bịa thông tin
-                                      3. Nếu không có dữ liệu để trả lời: 'Hiện tại tôi chưa có thông tin này'
+                           QUY T?C:
+                                      1. Ch? s? d?ng d? li?u du?c cung c?p
+                                      2. Không du?c t? b?a thông tin
+                                      3. N?u không có d? li?u ? tr? l?i: 'Hi?n t?i tôi chua có thông tin này'
 
-                           TRẢ LỜI:
-                                    - Ngắn gọn
-                                     - Rõ ràng
-                                     - Không lan man "
+                           TR? L?I:
+                                   - Ng?n g?n
+                                    - Rõ ràng
+                                    - Không lan man "
                 });
-
                 if (intent == "office_info")
                 {
                     var offices = await _officeRepository.GetAllActiveWithDetailsAsync();
                     var officeInfoList = string.Join("\n",
-                        offices.Select(o => $"{o.OfficeName} - {o.Address} - SĐT: {o.PhoneNumber}"));
+                        offices.Select(o => $"{o.OfficeName} - {o.Address} - SÐT: {o.PhoneNumber}"));
 
                     messages.Add(new
                     {
                         role = "system",
-                        content = $"DANH SÁCH VĂN PHÒNG:\n{officeInfoList}"
+                        content = $"DANH SÁCH VAN PHÒNG:\n{officeInfoList}"
                     });
                 }
 
@@ -84,7 +82,7 @@ namespace BookingTicket.Infrastructure.Repositories
                     messages.Add(new
                     {
                         role = "system",
-                        content = $"DANH SÁCH TỈNH: {provinceList}"
+                        content = $"DANH SÁCH T?NH: {provinceList}"
                     });
                 }
 
@@ -110,46 +108,30 @@ namespace BookingTicket.Infrastructure.Repositories
                     requestData);
 
                 if (!response.IsSuccessStatusCode)
-                    return "AI đang bận, bạn thử lại sau nhé.";
+                    return "AI dang b?n, b?n th? l?i sau nhé.";
 
                 var result = await response.Content.ReadFromJsonAsync<ChatCompletionResponse>();
 
                 return result?.Choices?.FirstOrDefault()?.message?.Content
-                       ?? "AI chưa trả về nội dung.";
+                       ?? "AI chua tr? v? n?i dung.";
             }
             catch (Exception ex)
             {
-                return $"Lỗi AI: {ex.Message}";
+                return $"L?i AI: {ex.Message}";
             }
         }
-
         private string GetRandomFallback()
         {
             var responses = new List<string>
             {
-                "Mình chuyên hỗ trợ đặt vé xe thôi nè. Bạn cần đi đâu?",
-                "Câu này mình chưa hỗ trợ tốt. Nhưng mình giúp bạn đặt vé rất nhanh!",
-                "Bạn cần tìm chuyến xe hay đặt vé không? Mình hỗ trợ ngay!",
-                "Mình tập trung vào đặt vé xe khách. Bạn muốn đi đâu để mình tìm chuyến?"
+                "Mình chuyên h? tr? d?t vé xe thôi ?? B?n c?n di dâu?",
+                "Câu này mình chua h? tr? t?t. Nhung mình giúp b?n d?t vé r?t nhanh!",
+                "B?n c?n tìm chuy?n xe hay d?t vé không? Mình h? tr? ngay!",
+                "Mình t?p trung vào d?t vé xe khách. B?n mu?n di dâu d? mình tìm chuy?n?"
             };
 
             var rand = new Random();
             return responses[rand.Next(responses.Count)];
         }
-    }
-
-    public class ChatCompletionResponse
-    {
-        public List<Choice> Choices { get; set; }
-    }
-
-    public class Choice
-    {
-        public Message message { get; set; }
-    }
-
-    public class Message
-    {
-        public string Content { get; set; }
     }
 }
