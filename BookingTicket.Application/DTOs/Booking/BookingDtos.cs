@@ -26,6 +26,8 @@ namespace BookingTicket.Application.DTOs.Booking
         public string? RouteName { get; set; }
         public string? DepartureTime { get; set; }
         public List<TicketDto> Tickets { get; set; } = new List<TicketDto>();
+        public string? CancellationReason { get; set; }
+        public string? AdminNote { get; set; }
     }
 
     public class TicketDto
@@ -34,5 +36,16 @@ namespace BookingTicket.Application.DTOs.Booking
         public int TripSeatId { get; set; }
         public string SeatNumber { get; set; } = string.Empty;
         public decimal Price { get; set; }
+    }
+
+    public class CancellationRequestDto
+    {
+        public string Reason { get; set; } = string.Empty;
+    }
+
+    public class ProcessCancellationDto
+    {
+        public bool Approve { get; set; }
+        public string AdminNote { get; set; } = string.Empty;
     }
 }

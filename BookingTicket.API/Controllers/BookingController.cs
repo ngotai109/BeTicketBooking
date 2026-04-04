@@ -70,5 +70,23 @@ namespace BookingTicket.API.Controllers
             var result = await _bookingService.GetPassengersStatisticAsync();
             return Ok(result);
         }
+
+        [HttpPost("{id}/request-cancellation")]
+        public async Task<IActionResult> RequestCancellation(int id, [FromBody] CancellationRequestDto request)
+        {
+            var success = await _bookingService.RequestCancellationAsync(id, request.Reason);
+            if (!success) return BadRequest(new { message = "Không thể gửi yêu cầu hủy vé. Có thể vé đã bị hủy hoặc đang trong trạng thái xử lý." });
+            return Ok(new { message = "Gửi yêu cầu hủy vé thành công. Vui lòng chờ admin phê duyệt." });
+        }
+
+        [HttpPost("{id}/process-cancellation")]
+        public async Task<IActionResult> ProcessCancellation(int id, [FromBody] ProcessCancellationDto request)
+        {
+            var success = await _bookingService.ProcessCancellationAsync(id, request.Approve, request.AdminNote);
+            if (!success) return BadRequest(new { message = "Không thể xử lý yêu cầu hủy vé. Kiểm tra trạng thái vé." });
+            return Ok(new { 
+                message = request.Approve ? "Đã phê duyệt hủy vé. Chỗ ngồi đã được giải phóng." : "Đã từ chối hủy vé." 
+            });
+        }
     }
 }

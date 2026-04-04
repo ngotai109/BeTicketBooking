@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Configuration;
 using BookingTicket.Domain.Common;
 using System;
 using System.Collections.Generic;
@@ -16,11 +17,14 @@ namespace BookingTicket.Infrastructure.Repositories
         private readonly IProvinceRepository _provinceRepository;
         private readonly IOfficeRepository _officeRepository;
 
-        public AiRepository(HttpClient httpClient, IProvinceRepository provinceRepository, IOfficeRepository officeRepository)
+        private readonly IConfiguration _configuration;
+
+        public AiRepository(HttpClient httpClient, IProvinceRepository provinceRepository, IOfficeRepository officeRepository, IConfiguration configuration)
         {
             _httpClient = httpClient;
             _provinceRepository = provinceRepository;
             _officeRepository = officeRepository;
+            _configuration = configuration;
         }
 
         public async Task<string> GetChatResponseAsync(List<ChatMessage> history)
@@ -30,22 +34,12 @@ namespace BookingTicket.Infrastructure.Repositories
                 var lastMessage = history.LastOrDefault()?.Content ?? "";
                 var intent = IntentHelper.DetectIntent(lastMessage);
 
-                if (intent == "out_of_scope")
-                {
-                    return GetRandomFallback();
-                }
-
                 if (intent == "small_talk")
                 {
                     return "Xin chào! Mình có thể giúp bạn tìm chuyến xe hoặc đặt vé nè";
                 }
 
-                var messages = new List<object>();
-
-                messages.Add(new
-                {
-                    role = "system",
-                    content = @"
+                var systemPrompt = @"
                            Bạn là chatbot đặt vé xe của nhà xe 'Đồng Hương Sông Lam'.
                            NHIỆM VỤ:
                                      - Tìm chuyến xe
@@ -60,20 +54,15 @@ namespace BookingTicket.Infrastructure.Repositories
                            TRẢ LỜI:
                                     - Ngắn gọn
                                      - Rõ ràng
-                                     - Không lan man "
-                });
+                                     - Không lan man ";
 
                 if (intent == "office_info")
                 {
                     var offices = await _officeRepository.GetAllActiveWithDetailsAsync();
                     var officeInfoList = string.Join("\n",
                         offices.Select(o => $"{o.OfficeName} - {o.Address} - SĐT: {o.PhoneNumber}"));
-
-                    messages.Add(new
-                    {
-                        role = "system",
-                        content = $"DANH SÁCH VĂN PHÒNG:\n{officeInfoList}"
-                    });
+                    
+                    systemPrompt += $"\n\nDANH SÁCH VĂN PHÒNG:\n{officeInfoList}";
                 }
 
                 if (intent == "search_trip" || intent == "book_ticket")
@@ -81,12 +70,15 @@ namespace BookingTicket.Infrastructure.Repositories
                     var provinces = await _provinceRepository.GetAllProvinceAsync();
                     var provinceList = string.Join(", ", provinces.Select(p => p.ProvinceName));
 
-                    messages.Add(new
-                    {
-                        role = "system",
-                        content = $"DANH SÁCH TỈNH: {provinceList}"
-                    });
+                    systemPrompt += $"\n\nDANH SÁCH TỈNH: {provinceList}";
                 }
+
+                var messages = new List<object>();
+                messages.Add(new
+                {
+                    role = "system",
+                    content = systemPrompt
+                });
 
                 foreach (var msg in history)
                 {
@@ -99,18 +91,24 @@ namespace BookingTicket.Infrastructure.Repositories
 
                 var requestData = new
                 {
-                    model = "local-model",
+                    model = "llama-3.3-70b-versatile",
                     messages = messages,
                     temperature = 0.3, 
                     max_tokens = 512
                 };
 
+                var apiKey = _configuration["Groq:ApiKey"] ?? "";
+                _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", apiKey);
+
                 var response = await _httpClient.PostAsJsonAsync(
-                    "http://localhost:1234/v1/chat/completions",
+                    "https://api.groq.com/openai/v1/chat/completions",
                     requestData);
 
                 if (!response.IsSuccessStatusCode)
-                    return "AI đang bận, bạn thử lại sau nhé.";
+                {
+                    var errorResponse = await response.Content.ReadAsStringAsync();
+                    return $"Groq Lỗi ({response.StatusCode}): {errorResponse}";
+                }
 
                 var result = await response.Content.ReadFromJsonAsync<ChatCompletionResponse>();
 

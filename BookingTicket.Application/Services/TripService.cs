@@ -90,6 +90,13 @@ namespace BookingTicket.Application.Services
 
                     if (!exists)
                     {
+                        var depTime = date.Date.Add(schedule.DepartureTime);
+                        var arrTime = date.Date.Add(schedule.ArrivalTime);
+                        if (schedule.ArrivalTime < schedule.DepartureTime) arrTime = arrTime.AddDays(1);
+
+                        var isOccupied = await _tripRepository.IsBusOccupiedAsync(schedule.BusId, depTime, arrTime);
+                        if (isOccupied) continue;
+
                         await CreateNewTripFromSchedule(schedule, date);
                         tripsAdded = true;
                     }
@@ -107,6 +114,13 @@ namespace BookingTicket.Application.Services
             var allTrips = await _tripRepository.GetAllAsync();
             bool exists = allTrips.Any(t => t.ScheduleId == scheduleId && t.DepartureTime.Date == departureDate.Date);
             if (exists) return false;
+
+            var depTime = departureDate.Date.Add(schedule.DepartureTime);
+            var arrTime = departureDate.Date.Add(schedule.ArrivalTime);
+            if (schedule.ArrivalTime < schedule.DepartureTime) arrTime = arrTime.AddDays(1);
+
+            var isOccupied = await _tripRepository.IsBusOccupiedAsync(schedule.BusId, depTime, arrTime);
+            if (isOccupied) return false;
 
             await CreateNewTripFromSchedule(schedule, departureDate);
 
@@ -187,6 +201,7 @@ namespace BookingTicket.Application.Services
                 RouteId = trip.RouteId,
                 RouteName = trip.Route?.RouteName,
                 DepartureTime = trip.DepartureTime.ToString(@"HH\:mm"),
+                DepartureDate = trip.DepartureTime.ToString("yyyy-MM-dd"),
                 ArrivalTime = trip.ArrivalTime.ToString(@"HH\:mm"),
                 BusId = trip.BusId,
                 BusPlate = trip.Bus?.PlateNumber,
@@ -245,30 +260,6 @@ namespace BookingTicket.Application.Services
             var allSeats = await _seatRepository.GetAllAsync();
             var busSeats = allSeats.Where(s => s.BusId == schedule.BusId && s.IsActive).ToList();
 
-            // IF BUS HAS NO SEATS: Generate 40 default seats for this bus UPFRONT!
-            if (!busSeats.Any())
-            {
-                var defaultSeats = new List<string> { 
-                    "A1", "A2", "A3", "A4", "A5", "A6", "A7", "A8", "A9", "A10",
-                    "B1", "B2", "B3", "B4", "B5", "B6", "B7", "B8", "B9", "B10",
-                    "C1", "C2", "C3", "C4", "C5", "C6", "C7", "C8", "C9", "C10",
-                    "D1", "D2", "D3", "D4", "D5", "D6", "D7", "D8", "D9", "D10"
-                };
-
-                foreach (var sNum in defaultSeats)
-                {
-                    var newSeat = new Seats
-                    {
-                        BusId = schedule.BusId,
-                        SeatNumber = sNum,
-                        Floor = sNum.StartsWith("A") || sNum.StartsWith("B") ? 1 : 2,
-                        IsActive = true
-                    };
-                    await _seatRepository.AddAsync(newSeat);
-                    busSeats.Add(newSeat);
-                }
-            }
-
             foreach (var seat in busSeats)
             {
                 newTrip.TripSeats.Add(new TripSeats
@@ -285,52 +276,48 @@ namespace BookingTicket.Application.Services
         private async Task EnsureTripSeatsExistAsync(int tripId)
         {
             var currentSeats = await _tripSeatRepository.GetSeatsByTripIdAsync(tripId);
+            var trip = await _tripRepository.GetByIdAsync(tripId);
+            
+            if (trip == null || trip.BusId <= 0) return;
+
+            var allSeats = await _seatRepository.GetAllAsync();
+            var busSeats = allSeats.Where(s => s.BusId == trip.BusId && s.IsActive).ToList();
+
+            // TRƯỜNG HỢP 1: Chưa có ghế nào -> Sinh mới
             if (!currentSeats.Any())
             {
-                var trip = await _tripRepository.GetByIdAsync(tripId);
-                if (trip != null && trip.BusId > 0)
+                if (busSeats.Any())
                 {
-                    var allSeats = await _seatRepository.GetAllAsync();
-                    var busSeats = allSeats.Where(s => s.BusId == trip.BusId && s.IsActive).ToList();
-                    
-                    // IF BUS HAS NO SEATS: Generate 40 default seats for this bus first!
-                    if (!busSeats.Any())
+                    foreach (var seat in busSeats)
                     {
-                        var defaultSeats = new List<string> { 
-                            "A1", "A2", "A3", "A4", "A5", "A6", "A7", "A8", "A9", "A10",
-                            "B1", "B2", "B3", "B4", "B5", "B6", "B7", "B8", "B9", "B10",
-                            "C1", "C2", "C3", "C4", "C5", "C6", "C7", "C8", "C9", "C10",
-                            "D1", "D2", "D3", "D4", "D5", "D6", "D7", "D8", "D9", "D10"
-                        };
-
-                        var newSeats = new List<Seats>();
-                        foreach (var sNum in defaultSeats)
+                        await _tripSeatRepository.AddAsync(new TripSeats
                         {
-                            var newSeat = new Seats
-                            {
-                                BusId = trip.BusId,
-                                SeatNumber = sNum,
-                                Floor = sNum.StartsWith("A") || sNum.StartsWith("B") ? 1 : 2,
-                                IsActive = true
-                            };
-                            await _seatRepository.AddAsync(newSeat);
-                            newSeats.Add(newSeat);
-                        }
-                        busSeats = newSeats;
+                            TripId = tripId,
+                            SeatId = seat.SeatId,
+                            Status = SeatStatus.Available
+                        });
                     }
+                }
+            }
+            // TRƯỜNG HỢP 2: Đã có ghế nhưng số lượng hoặc cấu trúc sai (do lỗi logic cũ)
+            // Chỉ thực hiện sửa lại nếu CHƯA CÓ AI ĐẶT GHẾ (để an toàn)
+            else if (currentSeats.Count() != busSeats.Count && !currentSeats.Any(s => s.Status == SeatStatus.Booked))
+            {
+                // Xóa hết ghế cũ bị sai
+                foreach (var oldSeat in currentSeats)
+                {
+                    await _tripSeatRepository.DeleteAsync(oldSeat);
+                }
 
-                    if (busSeats.Any())
+                // Sinh lại ghế theo đúng cấu trúc Bus đã chuẩn hóa
+                foreach (var seat in busSeats)
+                {
+                    await _tripSeatRepository.AddAsync(new TripSeats
                     {
-                        foreach (var seat in busSeats)
-                        {
-                            await _tripSeatRepository.AddAsync(new TripSeats
-                            {
-                                TripId = tripId,
-                                SeatId = seat.SeatId,
-                                Status = SeatStatus.Available
-                            });
-                        }
-                    }
+                        TripId = tripId,
+                        SeatId = seat.SeatId,
+                        Status = SeatStatus.Available
+                    });
                 }
             }
         }

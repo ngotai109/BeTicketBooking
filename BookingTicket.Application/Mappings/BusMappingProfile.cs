@@ -15,7 +15,8 @@ namespace BookingTicket.Application.Mappings
         public BusMappingProfile()
         {
             CreateMap<Buses, BusDTO>()
-                .ForMember(dest => dest.BusTypeName, opt => opt.MapFrom(src => src.BusType.TypeName));
+                .ForMember(dest => dest.BusTypeName, opt => opt.MapFrom(src => src.BusType.TypeName))
+                .ForMember(dest => dest.DefaultSeats, opt => opt.MapFrom(src => src.BusType.DefaultSeats));
             CreateMap<CreateBusDTO, Buses>();
             CreateMap<UpdateBusDTO, Buses>();
 

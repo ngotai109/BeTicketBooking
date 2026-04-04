@@ -8,6 +8,7 @@ namespace BookingTicket.Application.DTOs.Trip
         public int RouteId { get; set; }
         public string RouteName { get; set; }
         public string DepartureTime { get; set; }
+        public string DepartureDate { get; set; }
         public string ArrivalTime { get; set; }
         public int BusId { get; set; }
         public string BusPlate { get; set; }

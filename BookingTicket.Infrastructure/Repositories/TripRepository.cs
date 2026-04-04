@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using BookingTicket.Domain.Enums;
 
 namespace BookingTicket.Infrastructure.Repositories
 {
@@ -43,6 +44,16 @@ namespace BookingTicket.Infrastructure.Repositories
                 .Include(t => t.Bus)
                     .ThenInclude(b => b.BusType)
                 .FirstOrDefaultAsync(t => t.TripId == id);
+        }
+
+        public async Task<bool> IsBusOccupiedAsync(int busId, DateTime departureTime, DateTime arrivalTime, int? excludedTripId = null)
+        {
+            return await _context.Trips
+                .Where(t => t.BusId == busId && t.Status != TripStatus.Cancelled)
+                .Where(t => excludedTripId == null || t.TripId != excludedTripId)
+                .AnyAsync(t => (departureTime >= t.DepartureTime && departureTime < t.ArrivalTime) ||
+                               (arrivalTime > t.DepartureTime && arrivalTime <= t.ArrivalTime) ||
+                               (departureTime <= t.DepartureTime && arrivalTime >= t.ArrivalTime));
         }
     }
 }

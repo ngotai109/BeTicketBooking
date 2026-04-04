@@ -17,6 +17,7 @@ namespace BookingTicket.Application.DTOs.Bus
 
         public int BusTypeId { get; set; }
         public string BusTypeName { get; set; }
+        public int DefaultSeats { get; set; }
 
         public string PlateNumber { set; get; }
 

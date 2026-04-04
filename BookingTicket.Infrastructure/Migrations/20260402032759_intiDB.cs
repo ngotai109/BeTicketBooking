@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace BookingTicket.Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class UpdateBookingForGuestCheckout : Migration
+    public partial class intiDB : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -210,6 +210,7 @@ namespace BookingTicket.Infrastructure.Migrations
                     BookingDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                     TotalPrice = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     Status = table.Column<int>(type: "int", nullable: false),
+                    IsReminderSent = table.Column<bool>(type: "bit", nullable: false),
                     CustomerName = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     CustomerPhone = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     CustomerEmail = table.Column<string>(type: "nvarchar(max)", nullable: true),

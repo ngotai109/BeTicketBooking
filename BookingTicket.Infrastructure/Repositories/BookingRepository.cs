@@ -43,6 +43,10 @@ namespace BookingTicket.Infrastructure.Repositories
                 .Include(b => b.Tickets)
                     .ThenInclude(t => t.TripSeat)
                         .ThenInclude(ts => ts.Seat)
+                .Include(b => b.Tickets)
+                    .ThenInclude(t => t.TripSeat)
+                        .ThenInclude(ts => ts.Trip)
+                            .ThenInclude(tr => tr.Route)
                 .FirstOrDefaultAsync(b => b.BookingId == id);
         }
 
@@ -53,7 +57,7 @@ namespace BookingTicket.Infrastructure.Repositories
             var reminderWindowEnd = now.AddMinutes(40);
 
             return await _context.Bookings
-                .Where(b => b.Status == BookingStatus.Confirmed && !b.IsReminderSent)
+                .Where(b => (b.Status == BookingStatus.Confirmed || b.Status == BookingStatus.Pending) && !b.IsReminderSent)
                 .Include(b => b.Tickets)
                     .ThenInclude(t => t.TripSeat)
                         .ThenInclude(ts => ts.Trip)

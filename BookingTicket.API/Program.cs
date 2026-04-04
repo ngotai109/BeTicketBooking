@@ -5,6 +5,7 @@ using BookingTicket.Domain.Entities;
 using BookingTicket.Infrastructure.Data.SeedData;
 using BookingTicket.Application;
 using BookingTicket.Infrastructure;
+using BookingTicket.Application.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -22,6 +23,7 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
 
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure();
+builder.Services.AddScoped<IVNPayService, VNPayService>();
 builder.Services.AddHttpClient("", client =>
 {
     client.Timeout = TimeSpan.FromMinutes(5); 
@@ -30,7 +32,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowReactApp", policy =>
     {
-        policy.WithOrigins("http://localhost:3000")
+        policy.AllowAnyOrigin()
               .AllowAnyHeader()
               .AllowAnyMethod();
     });
@@ -38,16 +40,25 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-using (var scope = app.Services.CreateScope())
+try
 {
+    using var scope = app.Services.CreateScope();
     var services = scope.ServiceProvider;
+    var context = services.GetRequiredService<ApplicationDbContext>();
+  
+    await context.Database.MigrateAsync();
+
     var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
     var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
 
     await SeedDataRoles.SeedIdentityAsync(userManager, roleManager);
 
-    var context = services.GetRequiredService<ApplicationDbContext>();
     await SeedLocations.SeedAsync(context);
+}
+catch (Exception ex)
+{
+    var logger = app.Services.GetRequiredService<ILogger<Program>>();
+    logger.LogError(ex, "Đã xảy ra lỗi khi khởi tạo Database (Migrate/Seed).");
 }
 
 // Swagger

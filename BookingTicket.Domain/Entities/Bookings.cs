@@ -26,5 +26,9 @@ namespace BookingTicket.Domain.Entities
 
         public ICollection<Tickets> Tickets { get; set; } = new List<Tickets>();
         public ICollection<Payments> Payments { get; set; } = new List<Payments>();
+
+        // New fields for cancellation management
+        public string? CancellationReason { get; set; }
+        public string? AdminNote { get; set; }
     }
 }
