@@ -330,27 +330,41 @@ namespace BookingTicket.Application.Services
             return bookings
                 .Where(b => b.CustomerPhone == phone)
                 .OrderByDescending(b => b.BookingDate)
-                .Select(b => new BookingDto
-                {
-                    BookingId = b.BookingId,
-                    CustomerName = b.CustomerName,
-                    CustomerEmail = b.CustomerEmail,
-                    CustomerPhone = b.CustomerPhone,
-                    TripId = b.TripSeat != null ? b.TripSeat.TripId : 0,
-                    RouteName = b.TripSeat?.Trip?.Route != null
-                        ? $"{b.TripSeat.Trip.Route.DeparturePoint} - {b.TripSeat.Trip.Route.DestinationPoint}"
-                        : "Không xác định",
-                    DepartureTime = b.TripSeat?.Trip?.DepartureTime.ToString("HH:mm") + " ngày " + b.TripSeat?.Trip?.DepartureTime.ToString("dd/MM/yyyy") ?? "Không xác định",
-                    BookingDate = b.BookingDate,
-                    TotalPrice = b.TotalPrice,
-                    Status = (int)b.Status,
-                    Tickets = b.Tickets?.Select(t => new TicketDto
+                .Select(b => {
+                    var firstTicket = b.Tickets?.FirstOrDefault();
+                    string routeName = "N/A";
+                    string depTime = "N/A";
+                    
+                    if (firstTicket?.TripSeat?.Trip != null)
                     {
-                        TicketId = t.TicketId,
-                        SeatNumber = t.SeatNumber,
-                        Price = t.Price,
-                        Status = (int)t.Status
-                    }).ToList() ?? new List<TicketDto>()
+                        var trip = firstTicket.TripSeat.Trip;
+                        routeName = trip.Route?.RouteName ?? "N/A";
+                        depTime = $"{trip.DepartureTime:HH:mm} ngày {trip.DepartureTime:dd/MM/yyyy}";
+                    }
+
+                    return new BookingDto
+                    {
+                        BookingId = b.BookingId,
+                        BookingDate = b.BookingDate,
+                        TotalPrice = b.TotalPrice,
+                        Status = (int)b.Status,
+                        CustomerName = b.CustomerName,
+                        CustomerPhone = b.CustomerPhone,
+                        CustomerEmail = b.CustomerEmail,
+                        UserId = b.UserId,
+                        UserName = b.User?.FullName,
+                        RouteName = routeName,
+                        DepartureTime = depTime,
+                        Tickets = b.Tickets?.Select(t => new TicketDto
+                        {
+                            TicketId = t.TicketId,
+                            TripSeatId = t.TripSeatId,
+                            SeatNumber = t.TripSeat?.Seat?.SeatNumber ?? "N/A",
+                            Price = t.Price
+                        }).ToList() ?? new List<TicketDto>(),
+                        CancellationReason = b.CancellationReason,
+                        AdminNote = b.AdminNote
+                    };
                 })
                 .ToList();
         }
