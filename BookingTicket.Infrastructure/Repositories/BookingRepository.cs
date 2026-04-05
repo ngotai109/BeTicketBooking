@@ -19,6 +19,10 @@ namespace BookingTicket.Infrastructure.Repositories
         public async Task<IEnumerable<Bookings>> GetBookingsByUserIdAsync(string userId)
         {
             return await _context.Bookings
+                .Include(b => b.Tickets)
+                    .ThenInclude(t => t.TripSeat)
+                        .ThenInclude(ts => ts.Trip)
+                            .ThenInclude(tr => tr.Route)
                 .Where(b => b.UserId == userId)
                 .OrderByDescending(b => b.BookingDate)
                 .ToListAsync();
@@ -69,5 +73,19 @@ namespace BookingTicket.Infrastructure.Repositories
                                            && t.TripSeat.Trip.DepartureTime <= reminderWindowEnd))
                 .ToListAsync();
         }
+        public async Task<IEnumerable<Bookings>> GetAllWithDetailsAsync()
+        {
+            return await _context.Bookings
+                .Include(b => b.User)
+                .Include(b => b.Tickets)
+                    .ThenInclude(t => t.TripSeat)
+                        .ThenInclude(ts => ts.Seat)
+                .Include(b => b.Tickets)
+                    .ThenInclude(t => t.TripSeat)
+                        .ThenInclude(ts => ts.Trip)
+                            .ThenInclude(tr => tr.Route)
+                .ToListAsync();
+        }
     }
 }
+ 

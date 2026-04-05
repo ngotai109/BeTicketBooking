@@ -21,7 +21,10 @@ namespace BookingTicket.Infrastructure
             services.AddScoped<IProvinceRepository, ProvinceRepository>();
             services.AddScoped<IWardRepository, WardRepository>();
             services.AddScoped<IOfficeRepository, OfficeRepository>();
-            services.AddScoped<IAiRepository, AiRepository>();
+            services.AddHttpClient<IAiRepository, AiRepository>(client =>
+            {
+                client.Timeout = TimeSpan.FromMinutes(5);
+            });
             services.AddScoped<IVehicalRepository, VehicalRepository>();
             services.AddScoped<IBusTypeRepository, BusTypeRepository>();
             services.AddScoped<ITripRepository, TripRepository>();

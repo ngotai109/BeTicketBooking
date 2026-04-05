@@ -89,15 +89,20 @@ namespace BookingTicket.Infrastructure.Repositories
                     });
                 }
 
+                var apiKey = _configuration["Groq:ApiKey"] ?? "";
+                if (string.IsNullOrEmpty(apiKey) || apiKey == "YOUR_GROQ_API_KEY_HERE")
+                {
+                    return "AI đang chưa được cấu hình API Key. Vui lòng liên hệ Admin.";
+                }
+
                 var requestData = new
                 {
-                    model = "llama-3.3-70b-versatile",
+                    model = "llama-3.3-70b-versatile", // Đã cập nhật model mới do bản cũ bị Groq khai tử
                     messages = messages,
                     temperature = 0.3, 
                     max_tokens = 512
                 };
 
-                var apiKey = _configuration["Groq:ApiKey"] ?? "";
                 _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", apiKey);
 
                 var response = await _httpClient.PostAsJsonAsync(

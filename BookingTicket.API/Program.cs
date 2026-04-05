@@ -8,6 +8,7 @@ using BookingTicket.Infrastructure;
 using BookingTicket.Application.Services;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Configuration.AddJsonFile("appsettings.Local.json", optional: true, reloadOnChange: true);
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
@@ -24,10 +25,6 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure();
 builder.Services.AddScoped<IVNPayService, VNPayService>();
-builder.Services.AddHttpClient("", client =>
-{
-    client.Timeout = TimeSpan.FromMinutes(5); 
-});
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowReactApp", policy =>

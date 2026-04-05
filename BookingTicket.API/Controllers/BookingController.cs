@@ -71,6 +71,13 @@ namespace BookingTicket.API.Controllers
             return Ok(result);
         }
 
+        [HttpGet("passengers/{phone}/bookings")]
+        public async Task<ActionResult<IEnumerable<BookingDto>>> GetPassengerBookings(string phone)
+        {
+            var result = await _bookingService.GetBookingsByPhoneAsync(phone);
+            return Ok(result);
+        }
+
         [HttpPost("{id}/request-cancellation")]
         public async Task<IActionResult> RequestCancellation(int id, [FromBody] CancellationRequestDto request)
         {
