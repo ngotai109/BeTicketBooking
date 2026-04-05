@@ -72,9 +72,9 @@ namespace BookingTicket.API.Controllers
         }
 
         [HttpGet("passengers/{phone}/bookings")]
-        public async Task<ActionResult<IEnumerable<BookingDto>>> GetPassengerBookings(string phone)
+        public async Task<ActionResult<IEnumerable<BookingDto>>> GetPassengerBookings(string phone, [FromQuery] string name)
         {
-            var result = await _bookingService.GetBookingsByPhoneAsync(phone);
+            var result = await _bookingService.GetBookingsByPhoneAsync(phone, name);
             return Ok(result);
         }
 

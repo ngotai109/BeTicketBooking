@@ -304,13 +304,13 @@ namespace BookingTicket.Application.Services
             var bookings = await _bookingRepository.GetAllAsync();
             var passengers = bookings
                 .Where(b => !string.IsNullOrEmpty(b.CustomerPhone))
-                .GroupBy(b => b.CustomerPhone)
+                .GroupBy(b => new { b.CustomerPhone, b.CustomerName })
                 .Select(g => new PassengerStatisticDto
                 {
-                    Id = g.Key,
-                    PhoneNumber = g.Key,
+                    Id = $"{g.Key.CustomerPhone}_{g.Key.CustomerName}",
+                    PhoneNumber = g.Key.CustomerPhone,
                     Email = g.OrderByDescending(x => x.BookingDate).FirstOrDefault()?.CustomerEmail,
-                    FullName = g.OrderByDescending(x => x.BookingDate).FirstOrDefault()?.CustomerName ?? "Khách hàng",
+                    FullName = g.Key.CustomerName ?? "Khách hàng",
                     // Chỉ đếm các vé không phải đã hủy (Status != 2)
                     TotalBookings = g.Count(x => x.Status != BookingStatus.Cancelled),
                     // Tổng tiền cũng chỉ tính vé không hủy
@@ -324,11 +324,11 @@ namespace BookingTicket.Application.Services
             return passengers;
         }
 
-        public async Task<IEnumerable<BookingDto>> GetBookingsByPhoneAsync(string phone)
+        public async Task<IEnumerable<BookingDto>> GetBookingsByPhoneAsync(string phone, string name)
         {
             var bookings = await _bookingRepository.GetAllWithDetailsAsync();
             return bookings
-                .Where(b => b.CustomerPhone == phone)
+                .Where(b => b.CustomerPhone == phone && b.CustomerName == name)
                 .OrderByDescending(b => b.BookingDate)
                 .Select(b => {
                     var firstTicket = b.Tickets?.FirstOrDefault();
