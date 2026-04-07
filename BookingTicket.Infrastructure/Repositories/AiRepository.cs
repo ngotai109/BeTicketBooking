@@ -1,13 +1,16 @@
-using Microsoft.Extensions.Configuration;
-using BookingTicket.Domain.Common;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using System.Net.Http.Json;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
-using BookingTicket.Infrastructure.Helpers;
+using BookingTicket.Domain.Common;
+using BookingTicket.Domain.Enums;
 using BookingTicket.Domain.Interfaces.IRepositories;
+using BookingTicket.Infrastructure.Helpers;
+using Microsoft.Extensions.Configuration;
 
 namespace BookingTicket.Infrastructure.Repositories
 {
@@ -16,113 +19,130 @@ namespace BookingTicket.Infrastructure.Repositories
         private readonly HttpClient _httpClient;
         private readonly IProvinceRepository _provinceRepository;
         private readonly IOfficeRepository _officeRepository;
+        private readonly ITripRepository _tripRepository;
+        private readonly string _apiKey;
+        private readonly string _model = "llama-3.3-70b-versatile";
 
-        private readonly IConfiguration _configuration;
-
-        public AiRepository(HttpClient httpClient, IProvinceRepository provinceRepository, IOfficeRepository officeRepository, IConfiguration configuration)
+        public AiRepository(
+            HttpClient httpClient, 
+            IProvinceRepository provinceRepository, 
+            IOfficeRepository officeRepository, 
+            ITripRepository tripRepository,
+            IConfiguration configuration)
         {
             _httpClient = httpClient;
             _provinceRepository = provinceRepository;
             _officeRepository = officeRepository;
-            _configuration = configuration;
+            _tripRepository = tripRepository;
+            _apiKey = configuration["Groq:ApiKey"] ?? "";
         }
 
         public async Task<string> GetChatResponseAsync(List<ChatMessage> history)
         {
             try
             {
-                var lastMessage = history.LastOrDefault()?.Content ?? "";
+                var lastMessage = history.LastOrDefault()?.Content?.ToLower() ?? "";
                 var intent = IntentHelper.DetectIntent(lastMessage);
 
-                if (intent == "small_talk")
+                // Chuan bi ngu canh dong (Dynamic Context)
+                var currentTime = DateTime.Now;
+                var provinces = await _provinceRepository.GetAllProvinceAsync();
+                var offices = await _officeRepository.GetAllActiveWithDetailsAsync();
+                var provinceNames = provinces.Select(p => p.ProvinceName.ToLower()).ToList();
+                var officeNames = offices.Select(o => o.OfficeName.ToLower()).ToList();
+
+                var systemPrompt = new StringBuilder();
+                systemPrompt.AppendLine("Bạn là trợ lý ảo thông minh của nhà xe 'Đồng Hương Sông Lam'.");
+                systemPrompt.AppendLine($"Thời gian hiện tại: {currentTime:dd/MM/yyyy HH:mm} (Hôm nay là {currentTime:dddd}).");
+                systemPrompt.AppendLine("NHIỆM VỤ:");
+                systemPrompt.AppendLine("- Hỗ trợ tìm chuyến xe, giá vé và tư vấn đặt vé.");
+                systemPrompt.AppendLine("- Khi khách hàng hỏi về chuyến xe, hãy LUÔN ƯU TIÊN GỢI Ý các chuyến còn nhiều ghế trống nhất để khách hàng dễ dàng lựa chọn chỗ ngồi tốt.");
+                systemPrompt.AppendLine("- Cung cấp thông tin văn phòng, số điện thoại nhà xe.");
+                systemPrompt.AppendLine("\nQUY TẮC:");
+                systemPrompt.AppendLine("1. Chỉ sử dụng dữ liệu được cung cấp dưới đây. Tuyệt đối không tự bịa đặt thông tin.");
+                systemPrompt.AppendLine("2. Nếu không tìm thấy chuyến xe phù hợp, hãy lịch sự đề nghị khách để lại thông tin hoặc gọi hotline: 1900 xxxx.");
+                systemPrompt.AppendLine("3. Trả lời bằng tiếng Việt, lịch sự, thân thiện và chuyên nghiệp.");
+
+                // LUÔN CUNG CẤP DỮ LIỆU CƠ BẢN: Văn phòng và Tỉnh thành
+                systemPrompt.AppendLine("\nDANH SÁCH VĂN PHÒNG HIỆN CÓ CỦA NHÀ XE:");
+                foreach (var office in offices)
                 {
-                    return "Xin chào! Mình có thể giúp bạn tìm chuyến xe hoặc đặt vé nè";
+                    systemPrompt.AppendLine($"- {office.OfficeName}: {office.Address}. SĐT: {office.PhoneNumber}");
                 }
 
-                var systemPrompt = @"
-                           Bạn là chatbot đặt vé xe của nhà xe 'Đồng Hương Sông Lam'.
-                           NHIỆM VỤ:
-                                     - Tìm chuyến xe
-                                     - Cung cấp thông tin văn phòng
-                                     - Hỗ trợ đặt vé
+                systemPrompt.AppendLine($"\nTỈNH THÀNH NHÀ XE ĐANG PHỤC VỤ: {string.Join(", ", provinces.Select(p => p.ProvinceName))}");
 
-                           QUY TẮC:
-                                      1. Chỉ sử dụng dữ liệu được cung cấp
-                                      2. Không được tự bịa thông tin
-                                      3. Nếu không có dữ liệu để trả lời: 'Hiện tại tôi chưa có thông tin này'
+                // ĐIỀU KIỆN TRA CỨU CHUYẾN ĐI (Trips): Nếu hỏi trực tiếp về chuyến, lịch trình, hoặc nhắc tới tên nơi muốn đi
+                bool isAskingForTrip = intent == "search_trip" || intent == "book_ticket" || intent == "office_info" ||
+                                     lastMessage.Contains("chuyến") || lastMessage.Contains("xe") || lastMessage.Contains("đi") || 
+                                     lastMessage.Contains("ngày") || lastMessage.Contains("mai") || lastMessage.Contains("hôm nay") ||
+                                     lastMessage.Contains("lịch trình") || lastMessage.Contains("phòng") || lastMessage.Contains("văn phòng") ||
+                                     provinceNames.Any(p => lastMessage.Contains(p)) || officeNames.Any(o => lastMessage.Contains(o));
 
-                           TRẢ LỜI:
-                                    - Ngắn gọn
-                                     - Rõ ràng
-                                     - Không lan man ";
-
-                if (intent == "office_info")
+                if (isAskingForTrip)
                 {
-                    var offices = await _officeRepository.GetAllActiveWithDetailsAsync();
-                    var officeInfoList = string.Join("\n",
-                        offices.Select(o => $"{o.OfficeName} - {o.Address} - SĐT: {o.PhoneNumber}"));
-                    
-                    systemPrompt += $"\n\nDANH SÁCH VĂN PHÒNG:\n{officeInfoList}";
+                    // Lấy các chuyến xe trong vòng 3 ngày tới
+                    var upcomingTrips = await _tripRepository.GetTripsWithDetailsAsync(currentTime.Date.AddDays(0), null);
+                    var tripsInRange = upcomingTrips
+                        .Where(t => t.DepartureTime >= currentTime)
+                        .OrderBy(t => t.DepartureTime)
+                        .Take(20); // Tăng lên 20 chuyến để bao quát dữ liệu tốt hơn
+
+                    if (tripsInRange.Any())
+                    {
+                        systemPrompt.AppendLine("\nLỊCH TRÌNH CHUYẾN XE (Ưu tiên gợi ý chuyến nhiều ghế trống):");
+                        foreach (var trip in tripsInRange)
+                        {
+                            var availableSeats = trip.TripSeats.Count(s => s.Status == SeatStatus.Available);
+                            systemPrompt.AppendLine($"- Chuyến: {trip.Route.DepartureOffice.OfficeName} -> {trip.Route.ArrivalOffice.OfficeName}");
+                            systemPrompt.AppendLine($"  Khởi hành: {trip.DepartureTime:HH:mm dd/MM/yyyy}. Giá vé: {trip.TicketPrice:N0} VNĐ. Số ghế trống: {availableSeats}. Loại xe: {trip.Bus.BusType.TypeName}");
+                        }
+                    }
                 }
+                
+                systemPrompt.AppendLine("\nLƯU Ý QUAN TRỌNG:");
+                systemPrompt.AppendLine("- Luôn trả lời đầy đủ thông tin khách hỏi dựa trên dữ liệu trên.");
+                systemPrompt.AppendLine("- Khi khách muốn tìm chuyến xe, hãy ưu tiên gợi ý các chuyến còn nhiều ghế trống NHẤT.");
+                systemPrompt.AppendLine("- Nếu câu hỏi hoàn toàn không liên quan đến nhà xe hay vận tải hành khách, hãy lịch sự từ chối và hướng dẫn khách tập trung vào việc đặt vé.");
 
-                if (intent == "search_trip" || intent == "book_ticket")
+                var messages = new List<object>
                 {
-                    var provinces = await _provinceRepository.GetAllProvinceAsync();
-                    var provinceList = string.Join(", ", provinces.Select(p => p.ProvinceName));
-
-                    systemPrompt += $"\n\nDANH SÁCH TỈNH: {provinceList}";
-                }
-
-                var messages = new List<object>();
-                messages.Add(new
-                {
-                    role = "system",
-                    content = systemPrompt
-                });
+                    new { role = "system", content = systemPrompt.ToString() }
+                };
 
                 foreach (var msg in history)
                 {
-                    messages.Add(new
-                    {
-                        role = msg.Role,
-                        content = msg.Content
-                    });
-                }
-
-                var apiKey = _configuration["Groq:ApiKey"] ?? "";
-                if (string.IsNullOrEmpty(apiKey) || apiKey == "YOUR_GROQ_API_KEY_HERE")
-                {
-                    return "AI đang chưa được cấu hình API Key. Vui lòng liên hệ Admin.";
+                    messages.Add(new { role = msg.Role.ToLower(), content = msg.Content });
                 }
 
                 var requestData = new
                 {
-                    model = "llama-3.3-70b-versatile", // Đã cập nhật model mới do bản cũ bị Groq khai tử
+                    model = _model,
                     messages = messages,
-                    temperature = 0.3, 
-                    max_tokens = 512
+                    temperature = 0.5,
+                    max_tokens = 1024
                 };
 
-                _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", apiKey);
+                using var request = new HttpRequestMessage(HttpMethod.Post, "https://api.groq.com/openai/v1/chat/completions");
+                request.Headers.Add("Authorization", $"Bearer {_apiKey}");
+                request.Content = JsonContent.Create(requestData);
 
-                var response = await _httpClient.PostAsJsonAsync(
-                    "https://api.groq.com/openai/v1/chat/completions",
-                    requestData);
+                var response = await _httpClient.SendAsync(request);
 
                 if (!response.IsSuccessStatusCode)
                 {
-                    var errorResponse = await response.Content.ReadAsStringAsync();
-                    return $"Groq Lỗi ({response.StatusCode}): {errorResponse}";
+                    var error = await response.Content.ReadAsStringAsync();
+                    return $"Lỗi API Groq: {response.StatusCode} - {error}";
                 }
 
-                var result = await response.Content.ReadFromJsonAsync<ChatCompletionResponse>();
+                var result = await response.Content.ReadFromJsonAsync<JsonElement>();
+                var content = result.GetProperty("choices")[0].GetProperty("message").GetProperty("content").GetString();
 
-                return result?.Choices?.FirstOrDefault()?.message?.Content
-                       ?? "AI chưa trả về nội dung.";
+                return content ?? "Tôi chưa tìm thấy câu trả lời phù hợp cho bạn.";
             }
             catch (Exception ex)
             {
-                return $"Lỗi AI: {ex.Message}";
+                return $"Lỗi hệ thống AI: {ex.Message}";
             }
         }
 
@@ -130,29 +150,12 @@ namespace BookingTicket.Infrastructure.Repositories
         {
             var responses = new List<string>
             {
-                "Mình chuyên hỗ trợ đặt vé xe thôi nè. Bạn cần đi đâu?",
-                "Câu này mình chưa hỗ trợ tốt. Nhưng mình giúp bạn đặt vé rất nhanh!",
-                "Bạn cần tìm chuyến xe hay đặt vé không? Mình hỗ trợ ngay!",
-                "Mình tập trung vào đặt vé xe khách. Bạn muốn đi đâu để mình tìm chuyến?"
+                "Xin lỗi, mình là trợ lý của nhà xe Đồng Hương Sông Lam. Mình chỉ có thể hỗ trợ các vấn đề về đặt vé, lịch trình và văn phòng thôi nhé!",
+                "Câu hỏi này không nằm trong phạm vi hỗ trợ của mình. Bạn cần tìm chuyến xe đi đâu không?",
+                "Mình không có thông tin về vấn đề này. Tuy nhiên, mình rất sẵn lòng giúp bạn tra cứu chuyến đi hoặc tìm số điện thoại văn phòng nhà xe!"
             };
 
-            var rand = new Random();
-            return responses[rand.Next(responses.Count)];
+            return responses[new Random().Next(responses.Count)];
         }
-    }
-
-    public class ChatCompletionResponse
-    {
-        public List<Choice> Choices { get; set; }
-    }
-
-    public class Choice
-    {
-        public Message message { get; set; }
-    }
-
-    public class Message
-    {
-        public string Content { get; set; }
     }
 }

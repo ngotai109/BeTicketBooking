@@ -22,6 +22,7 @@ namespace BookingTicket.Infrastructure.Repositories
                 .Include(t => t.Route).ThenInclude(r => r.DepartureOffice).ThenInclude(o => o.Ward)
                 .Include(t => t.Route).ThenInclude(r => r.ArrivalOffice).ThenInclude(o => o.Ward)
                 .Include(t => t.Bus).ThenInclude(b => b.BusType)
+                .Include(t => t.TripSeats)
                 .AsQueryable();
 
             if (date.HasValue)
@@ -43,6 +44,7 @@ namespace BookingTicket.Infrastructure.Repositories
                 .Include(t => t.Route)
                 .Include(t => t.Bus)
                     .ThenInclude(b => b.BusType)
+                .Include(t => t.TripSeats)
                 .FirstOrDefaultAsync(t => t.TripId == id);
         }
 

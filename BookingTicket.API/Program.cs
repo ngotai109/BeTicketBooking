@@ -29,9 +29,10 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowReactApp", policy =>
     {
-        policy.AllowAnyOrigin()
+        policy.SetIsOriginAllowed(origin => true)
               .AllowAnyHeader()
-              .AllowAnyMethod();
+              .AllowAnyMethod()
+              .AllowCredentials();
     });
 });
 
@@ -65,10 +66,11 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+app.UseCors("AllowReactApp");
+
 app.UseHttpsRedirection();
 
 // Middleware order QUAN TRỌNG
-app.UseCors("AllowReactApp");
 
 app.UseAuthentication();
 app.UseAuthorization();

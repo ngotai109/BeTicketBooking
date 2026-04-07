@@ -22,19 +22,31 @@ namespace BookingTicket.API.Controllers
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginRequestDto request)
         {
-            if (!ModelState.IsValid)
+            try 
             {
-                return BadRequest(ModelState);
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);
+                }
+
+                var result = await _authService.LoginAsync(request);
+
+                if (result == null)
+                {
+                    return Unauthorized(new { message = "Email hoặc mật khẩu không chính xác." });
+                }
+
+                return Ok(result);
             }
-
-            var result = await _authService.LoginAsync(request);
-
-            if (result == null)
+            catch (Exception ex)
             {
-                return Unauthorized(new { message = "Email hoặc mật khẩu không chính xác." });
+                return StatusCode(500, new { 
+                    message = "Lỗi server nội bộ khi đăng nhập", 
+                    error = ex.Message, 
+                    innerError = ex.InnerException?.Message,
+                    stackTrace = ex.StackTrace 
+                });
             }
-
-            return Ok(result);
         }
 
         [HttpPost("refresh-token")]

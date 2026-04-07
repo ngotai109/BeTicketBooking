@@ -14,17 +14,16 @@ namespace BookingTicket.Infrastructure.Repositories
         {
         }
         
-        public async Task<IEnumerable<TripSeats>> GetSeatsByTripIdAsync(int tripId)
-        {
-            var query = _dbSet.AsQueryable();
+            public async Task<IEnumerable<TripSeats>> GetSeatsByTripIdAsync(int tripId)
+            {
+                var query = _dbSet.AsQueryable();
+         
+                query = query.Include(ts => ts.Seat);
             
-            // Explicit include
-            query = query.Include(ts => ts.Seat);
-            
-            return await query
-                .Where(ts => ts.TripId == tripId)
-                .ToListAsync();
-        }
+                return await query
+                    .Where(ts => ts.TripId == tripId)
+                    .ToListAsync();
+            }
 
         public async Task<TripSeats?> GetByIdWithDetailsAsync(int id)
         {
