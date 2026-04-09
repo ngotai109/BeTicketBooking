@@ -42,8 +42,8 @@ namespace BookingTicket.Infrastructure.Services
                 amount: (int)booking.TotalPrice,
                 description: $"Thanh toán vé #{booking.BookingId}",
                 items: items,
-                returnUrl: "http://localhost:3000/booking/success", // Sau này đổi thành domain xịn
-                cancelUrl: "http://localhost:3000/booking/cancel"
+                returnUrl: "http://localhost:3000/payment/payos-return", // Sau này đổi thành domain xịn
+                cancelUrl: "http://localhost:3000/payment/payos-return"
             );
 
             CreatePaymentResult result = await _payOS.createPaymentLink(paymentData);
