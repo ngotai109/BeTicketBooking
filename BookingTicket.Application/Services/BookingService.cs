@@ -127,10 +127,11 @@ namespace BookingTicket.Application.Services
                             
                             string seats = string.Join(", ", result.Tickets.Select(t => t.SeatNumber));
                             string routeName = tripWithDetails?.Route?.RouteName ?? "Đồng Hương Sông Lam";
+                            string plateNumber = tripWithDetails.Bus.PlateNumber;
                             string depTime = tripWithDetails != null 
                                 ? $"{tripWithDetails.DepartureTime:HH:mm} ngày {tripWithDetails.DepartureTime:dd/MM/yyyy}" 
                                 : "Đang cập nhật";
-
+                           
                             await scopedEmailService.SendTicketConfirmationAsync(
                                 customerEmail,
                                 customerName,
@@ -138,7 +139,8 @@ namespace BookingTicket.Application.Services
                                 routeName,
                                 depTime,
                                 seats,
-                                totalPriceVal
+                                totalPriceVal,
+                                plateNumber
                             );
                             Console.WriteLine($"[DEBUG] Đã gửi mail thành công đến: {customerEmail}");
                         }

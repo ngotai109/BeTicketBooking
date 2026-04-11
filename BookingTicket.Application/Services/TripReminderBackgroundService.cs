@@ -69,14 +69,15 @@ namespace BookingTicket.Application.Services
                     {
                         var seatList = string.Join(", ", booking.Tickets.Select(t => t.TripSeat.Seat.SeatNumber));
                         var routeName = trip.Route?.RouteName ?? "Đồng Hương Sông Lam";
-
+                        var plateNumber = trip.Bus?.PlateNumber ?? "Đang cập nhật";
                         await emailService.SendTripReminderAsync(
                             booking.CustomerEmail,
                             booking.CustomerName,
                             $"DSL{booking.BookingId:D6}", 
                             routeName,
                             trip.DepartureTime.ToString("HH:mm dd/MM/yyyy"),
-                            seatList
+                            seatList,
+                            plateNumber
                         );
 
                         booking.IsReminderSent = true;

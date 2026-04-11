@@ -13,6 +13,7 @@ namespace BookingTicket.Application.Interfaces.IServices
         Task<bool> AutoGenerateTripsAsync(DateTime startDate, DateTime endDate);
         Task<bool> CreateTripAsync(int scheduleId, DateTime departureDate);
         Task<bool> UpdateTripStatusAsync(int tripId, int status);
+        Task<bool> AssignDriverAsync(int tripId, int driverId);
         Task<bool> DeleteTripAsync(int tripId);
         Task<IEnumerable<TripMonitoringDto>> SearchTripsAsync(string departure, string destination, DateTime date);
     }

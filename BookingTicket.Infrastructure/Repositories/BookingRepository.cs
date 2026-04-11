@@ -57,8 +57,8 @@ namespace BookingTicket.Infrastructure.Repositories
         public async Task<IEnumerable<Bookings>> GetPendingRemindersAsync()
         {
             var now = DateTime.Now;
-            var reminderWindowStart = now.AddMinutes(25);
-            var reminderWindowEnd = now.AddMinutes(40);
+            var reminderWindowStart = now;
+            var reminderWindowEnd = now.AddMinutes(45);
 
             return await _context.Bookings
                 .Where(b => (b.Status == BookingStatus.Confirmed || b.Status == BookingStatus.Pending) && !b.IsReminderSent)
@@ -66,6 +66,10 @@ namespace BookingTicket.Infrastructure.Repositories
                     .ThenInclude(t => t.TripSeat)
                         .ThenInclude(ts => ts.Trip)
                             .ThenInclude(tr => tr.Route)
+                .Include(b => b.Tickets)
+                    .ThenInclude(t => t.TripSeat)
+                        .ThenInclude(ts => ts.Trip)
+                            .ThenInclude(tr => tr.Bus)
                 .Include(b => b.Tickets)
                     .ThenInclude(t => t.TripSeat)
                         .ThenInclude(ts => ts.Seat)

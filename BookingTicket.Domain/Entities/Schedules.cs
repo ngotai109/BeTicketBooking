@@ -24,6 +24,10 @@ namespace BookingTicket.Domain.Entities
         [Required]
         public decimal TicketPrice { get; set; } // Giá vé mặc định cho khung giờ này
         public bool IsActive { get; set; } = true;
+        
+        public int? DriverId { get; set; } // Tài xế mặc định cho lịch trình này
+        public Drivers? Driver { get; set; }
+
         public ICollection<Trips> Trips { get; set; } = new List<Trips>();
     }
 }

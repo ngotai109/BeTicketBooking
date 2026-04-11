@@ -18,6 +18,7 @@ namespace BookingTicket.Infrastructure.Repositories
             return await _context.Schedules
                 .Include(s => s.Route)
                 .Include(s => s.Bus)
+                .Include(s => s.Driver).ThenInclude(d => d.User)
                 .ToListAsync();
         }
 
@@ -26,6 +27,7 @@ namespace BookingTicket.Infrastructure.Repositories
             return await _context.Schedules
                 .Include(s => s.Route)
                 .Include(s => s.Bus)
+                .Include(s => s.Driver).ThenInclude(d => d.User)
                 .FirstOrDefaultAsync(s => s.ScheduleId == id);
         }
     }

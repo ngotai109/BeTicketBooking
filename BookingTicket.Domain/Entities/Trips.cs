@@ -19,6 +19,8 @@ namespace BookingTicket.Domain.Entities
         public Buses Bus { get; set; }
         public int RouteId { get; set; }
         public Routes Route { get; set; }
+        public int? DriverId { get; set; }
+        public Drivers? Driver { get; set; }
         public ICollection<TripSeats> TripSeats { get; set; } = new List<TripSeats>();
         public ICollection<Tickets> Tickets { get; set; } = new List<Tickets>();
 

@@ -67,7 +67,7 @@ namespace BookingTicket.Application.Services
             }
         }
 
-        public async Task SendTicketConfirmationAsync(string to, string customerName, string bookingCode, string routeName, string departureTime, string seats, decimal totalPrice)
+        public async Task SendTicketConfirmationAsync(string to, string customerName, string bookingCode, string routeName, string departureTime, string seats, decimal totalPrice,string plateNumber)
         {
             string subject = $"[Đồng Hương Sông Lam] Xác nhận đặt vé thành công - Mã vé: {bookingCode}";
             string body = $@"
@@ -83,6 +83,7 @@ namespace BookingTicket.Application.Services
                         <table style='width: 100%;'>
                             <tr><td style='padding: 5px 0;'><strong>Mã vé:</strong></td><td style='color: #e53e3e; font-weight: bold;'>{bookingCode}</td></tr>
                             <tr><td style='padding: 5px 0;'><strong>Tuyến đường:</strong></td><td>{routeName}</td></tr>
+                            <tr><td style='padding: 5px 0;'><strong>Biển số xe :</strong></td><td>{plateNumber}</td></tr>
                             <tr><td style='padding: 5px 0;'><strong>Giờ khởi hành:</strong></td><td>{departureTime}</td></tr>
                             <tr><td style='padding: 5px 0;'><strong>Danh sách ghế:</strong></td><td>{seats}</td></tr>
                             <tr><td style='padding: 5px 0;'><strong>Tổng tiền:</strong></td><td style='font-size: 18px; color: #2d3748; font-weight: bold;'>{totalPrice:N0} đ</td></tr>
@@ -106,7 +107,7 @@ namespace BookingTicket.Application.Services
             await SendEmailAsync(to, subject, body);
         }
 
-        public async Task SendTripReminderAsync(string to, string customerName, string bookingCode, string routeName, string departureTime, string seats)
+        public async Task SendTripReminderAsync(string to, string customerName, string bookingCode, string routeName, string departureTime, string seats, string plateNumber)
         {
             string subject = $"[Nhắc nhở] Chuyến xe {routeName} sắp khởi hành - Mã vé: {bookingCode}";
             string body = $@"
@@ -120,6 +121,7 @@ namespace BookingTicket.Application.Services
                         <table style='width: 100%;'>
                             <tr><td style='padding: 5px 0;'><strong>Mã vé:</strong></td><td style='color: #e53e3e; font-weight: bold;'>{bookingCode}</td></tr>
                             <tr><td style='padding: 5px 0;'><strong>Tuyến đường:</strong></td><td>{routeName}</td></tr>
+                            <tr><td style='padding: 5px 0;'><strong>Biển số xe:</strong></td><td>{plateNumber}</td></tr>
                             <tr><td style='padding: 5px 0;'><strong>Giờ khởi hành:</strong></td><td style='font-size: 18px; color: #e53e3e; font-weight: bold;'>{departureTime}</td></tr>
                             <tr><td style='padding: 5px 0;'><strong>Danh sách ghế:</strong></td><td>{seats}</td></tr>
                         </table>

@@ -27,6 +27,7 @@ namespace BookingTicket.Infrastructure.Data
         public DbSet<Routes> Routes { get; set; }
         public DbSet<Schedules> Schedules { get; set; }
         public DbSet<Trips> Trips { get; set; }
+        public DbSet<Drivers> Drivers { get; set; }
         public DbSet<Seats> Seats { get; set; }
         public DbSet<TripSeats> TripSeats { get; set; }
 
@@ -147,6 +148,19 @@ namespace BookingTicket.Infrastructure.Data
                 .WithMany(bt => bt.Buses)
                 .HasForeignKey(b => b.BusTypeId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            // ── Drivers ───────────────────────────────────────────────────
+            modelBuilder.Entity<Drivers>()
+                .HasOne(d => d.User)
+                .WithOne()
+                .HasForeignKey<Drivers>(d => d.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Trips>()
+                .HasOne(t => t.Driver)
+                .WithMany(d => d.Trips)
+                .HasForeignKey(t => t.DriverId)
+                .OnDelete(DeleteBehavior.SetNull);
         }
     }
 }

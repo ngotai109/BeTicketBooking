@@ -91,6 +91,14 @@ namespace BookingTicket.API.Controllers
             return Ok(new { message = "Cập nhật trạng thái chuyến đi thành công." });
         }
 
+        [HttpPatch("{id}/driver")]
+        public async Task<IActionResult> AssignDriver(int id, [FromQuery] int driverId)
+        {
+            var result = await _tripService.AssignDriverAsync(id, driverId);
+            if (!result) return NotFound(new { message = "Không thể gán tài xế cho chuyến đi này." });
+            return Ok(new { message = "Gán tài xế thành công." });
+        }
+
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {

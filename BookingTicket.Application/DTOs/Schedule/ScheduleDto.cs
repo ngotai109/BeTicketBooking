@@ -13,6 +13,8 @@ namespace BookingTicket.Application.DTOs.Schedule
         public string ArrivalTime { get; set; }
         public decimal TicketPrice { get; set; }
         public bool IsActive { get; set; }
+        public int? DriverId { get; set; }
+        public string? DriverName { get; set; }
     }
 
     public class CreateScheduleDto
@@ -23,5 +25,6 @@ namespace BookingTicket.Application.DTOs.Schedule
         public string ArrivalTime { get; set; }
         public decimal TicketPrice { get; set; }
         public bool IsActive { get; set; } = true;
+        public int? DriverId { get; set; }
     }
 }

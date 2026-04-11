@@ -19,6 +19,8 @@ namespace BookingTicket.Application.DTOs.Trip
         public decimal TicketPrice { get; set; }
         public string DepartureOfficeName { get; set; }
         public string ArrivalOfficeName { get; set; }
+        public int? DriverId { get; set; }
+        public string? DriverName { get; set; }
     }
 
     public class TripSeatDetailDto

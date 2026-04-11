@@ -4,6 +4,7 @@ using BookingTicket.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BookingTicket.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260411034322_AddDriverManagement")]
+    partial class AddDriverManagement
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -29,9 +32,6 @@ namespace BookingTicket.Infrastructure.Migrations
 
                     b.Property<int>("AccessFailedCount")
                         .HasColumnType("int");
-
-                    b.Property<string>("AvatarUrl")
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
@@ -413,9 +413,6 @@ namespace BookingTicket.Infrastructure.Migrations
                     b.Property<TimeSpan>("DepartureTime")
                         .HasColumnType("time");
 
-                    b.Property<int?>("DriverId")
-                        .HasColumnType("int");
-
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
@@ -428,8 +425,6 @@ namespace BookingTicket.Infrastructure.Migrations
                     b.HasKey("ScheduleId");
 
                     b.HasIndex("BusId");
-
-                    b.HasIndex("DriverId");
 
                     b.HasIndex("RouteId");
 
@@ -833,10 +828,6 @@ namespace BookingTicket.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("BookingTicket.Domain.Entities.Drivers", "Driver")
-                        .WithMany()
-                        .HasForeignKey("DriverId");
-
                     b.HasOne("BookingTicket.Domain.Entities.Routes", "Route")
                         .WithMany()
                         .HasForeignKey("RouteId")
@@ -844,8 +835,6 @@ namespace BookingTicket.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("Bus");
-
-                    b.Navigation("Driver");
 
                     b.Navigation("Route");
                 });

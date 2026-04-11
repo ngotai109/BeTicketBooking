@@ -22,6 +22,7 @@ namespace BookingTicket.Infrastructure.Repositories
                 .Include(t => t.Route).ThenInclude(r => r.DepartureOffice).ThenInclude(o => o.Ward)
                 .Include(t => t.Route).ThenInclude(r => r.ArrivalOffice).ThenInclude(o => o.Ward)
                 .Include(t => t.Bus).ThenInclude(b => b.BusType)
+                .Include(t => t.Driver).ThenInclude(d => d.User)
                 .Include(t => t.TripSeats)
                 .AsQueryable();
 
@@ -44,8 +45,22 @@ namespace BookingTicket.Infrastructure.Repositories
                 .Include(t => t.Route)
                 .Include(t => t.Bus)
                     .ThenInclude(b => b.BusType)
+                .Include(t => t.Driver).ThenInclude(d => d.User)
                 .Include(t => t.TripSeats)
                 .FirstOrDefaultAsync(t => t.TripId == id);
+        }
+
+        public async Task<IEnumerable<Trips>> GetTripsByDriverIdAsync(int driverId)
+        {
+            return await _context.Trips
+                .Include(t => t.Route)
+                    .ThenInclude(r => r.DepartureOffice)
+                .Include(t => t.Route)
+                    .ThenInclude(r => r.ArrivalOffice)
+                .Include(t => t.Bus)
+                .Where(t => t.DriverId == driverId)
+                .OrderBy(t => t.DepartureTime)
+                .ToListAsync();
         }
 
         public async Task<bool> IsBusOccupiedAsync(int busId, DateTime departureTime, DateTime arrivalTime, int? excludedTripId = null)

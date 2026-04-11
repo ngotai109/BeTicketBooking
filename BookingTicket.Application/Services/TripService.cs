@@ -137,6 +137,16 @@ namespace BookingTicket.Application.Services
             return true;
         }
 
+        public async Task<bool> AssignDriverAsync(int tripId, int driverId)
+        {
+            var trip = await _tripRepository.GetByIdAsync(tripId);
+            if (trip == null) return false;
+
+            trip.DriverId = driverId;
+            await _tripRepository.UpdateAsync(trip);
+            return true;
+        }
+
         public async Task<bool> DeleteTripAsync(int tripId)
         {
             var trip = await _tripRepository.GetByIdAsync(tripId);
@@ -211,7 +221,9 @@ namespace BookingTicket.Application.Services
                 Status = (int)trip.Status,
                 TicketPrice = trip.TicketPrice,
                 DepartureOfficeName = trip.Route?.DepartureOffice?.OfficeName,
-                ArrivalOfficeName = trip.Route?.ArrivalOffice?.OfficeName
+                ArrivalOfficeName = trip.Route?.ArrivalOffice?.OfficeName,
+                DriverId = trip.DriverId,
+                DriverName = trip.Driver?.User?.FullName
             };
         }
 
@@ -252,6 +264,7 @@ namespace BookingTicket.Application.Services
                 DepartureTime = departureTime,
                 ArrivalTime = arrivalTime,
                 TicketPrice = schedule.TicketPrice,
+                DriverId = schedule.DriverId,
                 TripSeats = new List<TripSeats>(),
                 Status = TripStatus.Scheduled
             };

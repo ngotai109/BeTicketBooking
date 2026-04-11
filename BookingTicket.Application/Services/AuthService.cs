@@ -159,5 +159,14 @@ namespace BookingTicket.Application.Services
         {
             return await _userManager.FindByIdAsync(userId);
         }
+
+        public async Task<bool> ChangePasswordAsync(string userId, ChangePasswordRequestDto request)
+        {
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null) return false;
+
+            var result = await _userManager.ChangePasswordAsync(user, request.CurrentPassword, request.NewPassword);
+            return result.Succeeded;
+        }
     }
 }

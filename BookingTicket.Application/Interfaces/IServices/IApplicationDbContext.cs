@@ -14,6 +14,7 @@ namespace BookingTicket.Application.Interfaces.IServices
         DbSet<Buses> Buses { get; }
         DbSet<Routes> Routes { get; }
         DbSet<Trips> Trips { get; }
+        DbSet<Drivers> Drivers { get; }
         DbSet<Seats> Seats { get; }
         DbSet<TripSeats> TripSeats { get; }
         DbSet<Bookings> Bookings { get; }

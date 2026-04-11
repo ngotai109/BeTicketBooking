@@ -14,5 +14,6 @@ namespace BookingTicket.Application.Interfaces.IServices
         Task<LoginResponseDto?> RefreshTokenAsync(RefreshTokenRequestDTO request);
         Task<bool> RevokeTokenAsync(RevokeTokenRequestDto request);
         Task<UserDto?> GetMeAsync(string userId);
+        Task<bool> ChangePasswordAsync(string userId, ChangePasswordRequestDto request);
     }
 }
