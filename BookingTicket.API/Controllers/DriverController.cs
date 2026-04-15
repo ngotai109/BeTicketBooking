@@ -18,12 +18,18 @@ namespace BookingTicket.Api.Controllers
     public class DriverController : ControllerBase
     {
         private readonly IDriverRepository _driverRepository;
+        private readonly ITripRepository _tripRepository;
+        private readonly ITicketRepository _ticketRepository;
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly BookingTicket.Application.Interfaces.IServices.IDriverLeaveRequestService _leaveRequestService;
 
-        public DriverController(IDriverRepository driverRepository, UserManager<ApplicationUser> userManager)
+        public DriverController(IDriverRepository driverRepository, ITripRepository tripRepository, ITicketRepository ticketRepository, UserManager<ApplicationUser> userManager, BookingTicket.Application.Interfaces.IServices.IDriverLeaveRequestService leaveRequestService)
         {
             _driverRepository = driverRepository;
+            _tripRepository = tripRepository;
+            _ticketRepository = ticketRepository;
             _userManager = userManager;
+            _leaveRequestService = leaveRequestService;
         }
 
         [HttpGet]
@@ -139,36 +145,61 @@ namespace BookingTicket.Api.Controllers
         }
 
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteDriver(int id)
+        public async Task<IActionResult> ToggleLockDriver(int id)
         {
-            var driver = await _driverRepository.GetByIdAsync(id);
+            var driver = await _driverRepository.GetDriverWithUserAsync(id);
             if (driver == null) return NotFound();
 
-            // Ở đây có thể chọn xóa User luôn hoặc chỉ xóa bản ghi Driver
-            // Để an toàn, ta chỉ xóa Driver hoặc đánh dấu trạng thái
-            await _driverRepository.DeleteAsync(driver);
-            return NoContent();
+            var user = driver.User;
+
+            if (driver.Status == DriverStatus.Locked)
+            {
+                // Unlock
+                driver.Status = DriverStatus.Available;
+                if (user != null)
+                {
+                    await _userManager.SetLockoutEndDateAsync(user, null);
+                }
+            }
+            else
+            {
+                // Lock
+                driver.Status = DriverStatus.Locked;
+                if (user != null)
+                {
+                    await _userManager.SetLockoutEndDateAsync(user, DateTimeOffset.MaxValue);
+                }
+            }
+
+            await _driverRepository.UpdateAsync(driver);
+            return Ok(new { message = driver.Status == DriverStatus.Locked ? "Đã khóa tài xế" : "Đã mở khóa tài xế", status = driver.Status });
         }
 
         [HttpGet("my-schedule")]
-        [Authorize(Roles = "Driver")]
+        [Authorize(Roles = "Driver,Admin")]
         public async Task<ActionResult<IEnumerable<object>>> GetMySchedule()
         {
             var userId = _userManager.GetUserId(User);
-            var driver = await _driverRepository.GetByUserIdAsync(userId);
-            if (driver == null) return NotFound("Không tìm thấy thông tin tài xế.");
+            if (string.IsNullOrEmpty(userId)) return Unauthorized();
 
-            var trips = await _driverRepository.GetByIdWithDetailsAsync(driver.DriverId);
-            // Ở đây mình trả về dữ liệu tối giản cho tài xế
-            var result = trips.Trips.OrderBy(t => t.DepartureTime).Select(t => new
-            {
-                t.TripId,
-                RouteName = t.Route?.RouteName ?? "N/A",
-                DepartureTime = t.DepartureTime,
-                BusPlateNumber = t.Bus?.PlateNumber ?? "N/A",
-                Status = t.Status.ToString(),
-                PassengerCount = t.Tickets.Count
-            });
+            var driver = await _driverRepository.GetByUserIdAsync(userId);
+            if (driver == null) return NotFound(new { message = "Không tìm thấy hồ sơ tài xế cho tài khoản này." });
+
+            var trips = await _tripRepository.GetTripsByDriverIdAsync(driver.DriverId);
+
+            // Trả về danh sách chuyến xe được gán cho tài xế này
+            var result = trips?
+                .OrderBy(t => t.DepartureTime)
+                .Select(t => new
+                {
+                    t.TripId,
+                    RouteName = t.Route?.RouteName ?? "N/A",
+                    DepartureTime = t.DepartureTime,
+                    ArrivalTime = t.ArrivalTime,
+                    BusPlateNumber = t.Bus?.PlateNumber ?? "N/A",
+                    Status = t.Status.ToString(),
+                    PassengerCount = t.TripSeats?.Count(ts => ts.Status == SeatStatus.Booked) ?? 0
+                }) ?? Enumerable.Empty<object>();
 
             return Ok(result);
         }
@@ -177,29 +208,125 @@ namespace BookingTicket.Api.Controllers
         [Authorize(Roles = "Driver")]
         public async Task<ActionResult<IEnumerable<object>>> GetTripPassengers(int tripId)
         {
-            // Kiểm tra xem trip này có đúng của tài xế này không (bảo mật)
             var userId = _userManager.GetUserId(User);
             var driver = await _driverRepository.GetByUserIdAsync(userId);
+            if (driver == null) return NotFound(new { message = "Không tìm thấy hồ sơ tài xế." });
             
-            // Tìm trip và bao gồm vé + thông tin khách
-            // (Giả sử có ITripRepository hoặc dùng DbContext trực tiếp cho nhanh)
-            var passengers = await _driverRepository.GetByIdWithDetailsAsync(driver.DriverId);
-            var trip = passengers.Trips.FirstOrDefault(t => t.TripId == tripId);
+            var trip = await _tripRepository.GetTripWithPassengerDetailsAsync(tripId);
             
-            if (trip == null) return Forbidden();
+            if (trip == null) return NotFound(new { message = "Không tìm thấy chuyến xe." });
+            if (trip.DriverId != driver.DriverId) return Forbidden();
 
-            var result = trip.Tickets.Select(tk => new
-            {
-                SeatNumber = tk.TripSeat?.Seat?.SeatNumber ?? "N/A",
-                CustomerName = tk.Booking?.CustomerName ?? "N/A",
-                PhoneNumber = tk.Booking?.CustomerPhone ?? "N/A",
-                Status = tk.Booking?.Status.ToString(),
-                BookingId = tk.BookingId
-            });
+            var result = trip.TripSeats?
+                .Where(ts => ts.Status == SeatStatus.Booked)
+                .Select(ts => {
+                    var tk = ts.Tickets?.FirstOrDefault();
+                    return new
+                    {
+                        SeatNumber = ts.Seat?.SeatNumber ?? "N/A",
+                        CustomerName = tk?.Booking?.CustomerName ?? "Khách lẻ (Admin đặt)",
+                        PhoneNumber = tk?.Booking?.CustomerPhone ?? "N/A",
+                        Status = tk?.Booking?.Status.ToString() ?? "Confirmed",
+                        BookingId = tk?.BookingId,
+                        TicketId = tk?.TicketId,
+                        IsBoarded = tk?.IsBoarded ?? false,
+                        IsDroppedOff = tk?.IsDroppedOff ?? false
+                    };
+                }) ?? Enumerable.Empty<object>();
 
             return Ok(result);
         }
 
+ 
+        [HttpPatch("tickets/{ticketId}/toggle-board")]
+        [Authorize(Roles = "Driver")]
+        public async Task<IActionResult> ToggleBoard(int ticketId)
+        {
+            var ticket = await _ticketRepository.GetByIdAsync(ticketId);
+            if (ticket == null) return NotFound(new { message = "Không tìm thấy vé." });
+            
+            ticket.IsBoarded = !ticket.IsBoarded;
+            await _ticketRepository.UpdateAsync(ticket);
+            
+            return Ok(new { isBoarded = ticket.IsBoarded });
+        }
+ 
+        [HttpPatch("tickets/{ticketId}/toggle-dropoff")]
+        [Authorize(Roles = "Driver")]
+        public async Task<IActionResult> ToggleDropOff(int ticketId)
+        {
+            var ticket = await _ticketRepository.GetByIdAsync(ticketId);
+            if (ticket == null) return NotFound(new { message = "Không tìm thấy vé." });
+            
+            ticket.IsDroppedOff = !ticket.IsDroppedOff;
+            await _ticketRepository.UpdateAsync(ticket);
+            
+            return Ok(new { isDroppedOff = ticket.IsDroppedOff });
+        }
+
+        [HttpPost("tickets/{ticketId}/request-mid-trip-dropoff")]
+        [Authorize(Roles = "Driver")]
+        public async Task<IActionResult> RequestMidTripDropOff(int ticketId, [FromBody] MidTripDropOffRequestDto request)
+        {
+            var ticket = await _ticketRepository.GetByIdAsync(ticketId);
+            if (ticket == null) return NotFound(new { message = "Không tìm thấy vé." });
+
+            if (!ticket.IsBoarded) return BadRequest(new { message = "Khách chưa lên xe, không thể cho xuống." });
+
+            ticket.Status = TicketStatus.WaittingDropOffConfirm;
+            ticket.ActualDropOffLocation = request.ActualDropOffLocation;
+            ticket.ActualDropOffTime = DateTime.Now;
+
+            await _ticketRepository.UpdateAsync(ticket);
+
+            // TODO: Gửi Email cho admin hoặc người dùng ở đây
+            // var _emailService = ...
+
+            return Ok(new { message = "Đã gửi yêu cầu xác nhận xuống xe.", status = ticket.Status.ToString() });
+        }
+        [HttpPost("leave-requests")]
+        [Authorize(Roles = "Driver,Admin")]
+        public async Task<IActionResult> SubmitLeaveRequest([FromBody] CreateLeaveRequestDto request)
+        {
+            var userId = _userManager.GetUserId(User);
+            if (string.IsNullOrEmpty(userId)) return Unauthorized();
+
+            try {
+                var result = await _leaveRequestService.SubmitLeaveRequestAsync(userId, request);
+                return Ok(result);
+            } catch (Exception ex) {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        [HttpGet("leave-requests")]
+        [Authorize(Roles = "Driver,Admin")]
+        public async Task<IActionResult> GetMyLeaveRequests()
+        {
+            var userId = _userManager.GetUserId(User);
+            if (string.IsNullOrEmpty(userId)) return Unauthorized();
+
+            var result = await _leaveRequestService.GetMyLeaveRequestsAsync(userId);
+            return Ok(result);
+        }
+
+        [HttpGet("all-leave-requests")]
+        // [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> GetAllLeaveRequests()
+        {
+            var result = await _leaveRequestService.GetAllLeaveRequestsAsync();
+            return Ok(result);
+        }
+
+        [HttpPost("leave-requests/{requestId}/process")]
+        // [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> ProcessLeaveRequest(int requestId, [FromBody] ProcessLeaveRequestDto processDto)
+        {
+            var success = await _leaveRequestService.ProcessLeaveRequestAsync(requestId, processDto);
+            if (!success) return BadRequest(new { message = "Không thể xử lý yêu cầu. Yêu cầu có thể không tồn tại hoặc đã được xử lý." });
+            return Ok(new { message = "Xử lý thành công." });
+        }
+ 
         private ActionResult Forbidden() => StatusCode(403, "Bạn không có quyền truy cập chuyến xe này.");
     }
 }

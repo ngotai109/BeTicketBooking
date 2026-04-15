@@ -95,5 +95,46 @@ namespace BookingTicket.API.Controllers
                 message = request.Approve ? "Đã phê duyệt hủy vé. Chỗ ngồi đã được giải phóng." : "Đã từ chối hủy vé." 
             });
         }
+
+        [HttpGet("mid-trip-requests")]
+        public async Task<ActionResult<IEnumerable<object>>> GetMidTripRequests()
+        {
+            var result = await _bookingService.GetMidTripRequestsAsync();
+            return Ok(result);
+        }
+
+        [HttpPost("mid-trip-requests/{ticketId}/approve")]
+        public async Task<IActionResult> ApproveMidTripRequest(int ticketId)
+        {
+            var success = await _bookingService.ApproveMidTripRequestAndSendMailAsync(ticketId);
+            if (!success) return BadRequest(new { message = "Không thể duyệt yêu cầu. Vui lòng kiểm tra lại trạng thái vé hoặc email khách hàng." });
+            return Ok(new { message = "Đã duyệt yêu cầu và gửi email xác nhận cho khách hàng." });
+        }
+
+        [HttpPost("mid-trip-requests/{ticketId}/confirm")]
+        public async Task<IActionResult> PassengerConfirmDropOff(int ticketId)
+        {
+            var success = await _bookingService.PassengerConfirmDropOffAsync(ticketId);
+            if (!success) return BadRequest(new { message = "Không thể xác nhận. Vé không tồn tại hoặc đã được xác nhận trước đó." });
+            return Ok(new { message = "Xác nhận xuống xe thành công." });
+        }
+
+        [HttpGet("admin-notifications")]
+        public async Task<ActionResult<object>> GetAdminNotifications()
+        {
+            // 1. Get Cancellation Requests count
+            var bookings = await _bookingService.GetAllBookingsAsync();
+            var cancellationCount = System.Linq.Enumerable.Count(bookings, b => b.Status == 4);
+
+            // 2. Get Mid-trip Drop off requests count
+            var midTripRequests = await _bookingService.GetMidTripRequestsAsync();
+            var dropOffCount = System.Linq.Enumerable.Count(midTripRequests);
+
+            return Ok(new {
+                cancellationRequests = cancellationCount,
+                dropOffRequests = dropOffCount,
+                totalCount = cancellationCount + dropOffCount
+            });
+        }
     }
 }

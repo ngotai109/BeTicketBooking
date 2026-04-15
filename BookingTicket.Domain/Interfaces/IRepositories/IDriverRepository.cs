@@ -9,5 +9,6 @@ namespace BookingTicket.Domain.Interfaces.IRepositories
         Task<Drivers?> GetByUserIdAsync(string userId);
         Task<IEnumerable<Drivers>> GetAllWithDetailsAsync();
         Task<Drivers?> GetByIdWithDetailsAsync(int driverId);
+        Task<Drivers?> GetDriverWithUserAsync(int driverId);
     }
 }

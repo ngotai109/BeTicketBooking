@@ -41,8 +41,8 @@ namespace BookingTicket.Application.Services
                 return null;
             }
 
-            // 1. Validation: Prevent overlapping schedules for the same bus
-            if (await IsOverlappingWithExistingAsync(createScheduleDto.BusId, dTime, aTime))
+            // 1. Validation: Prevent overlapping schedules for the same bus or driver
+            if (await IsOverlappingWithExistingAsync(createScheduleDto.BusId, createScheduleDto.DriverId, dTime, aTime))
             {
                 return null; // Return null to indicate validation failed (Overlap)
             }
@@ -65,8 +65,8 @@ namespace BookingTicket.Application.Services
                 return null;
             }
 
-            // 1. Validation: Prevent overlapping schedules for the same bus (ignoring the current one)
-            if (await IsOverlappingWithExistingAsync(updateScheduleDto.BusId, dTime, aTime, id))
+            // 1. Validation: Prevent overlapping schedules for the same bus or driver (ignoring the current one)
+            if (await IsOverlappingWithExistingAsync(updateScheduleDto.BusId, updateScheduleDto.DriverId, dTime, aTime, id))
             {
                 return null;
             }
@@ -78,14 +78,18 @@ namespace BookingTicket.Application.Services
             return _mapper.Map<ScheduleDto>(updated);
         }
 
-        private async Task<bool> IsOverlappingWithExistingAsync(int busId, TimeSpan d1, TimeSpan a1, int? excludeId = null)
+        private async Task<bool> IsOverlappingWithExistingAsync(int busId, int? driverId, TimeSpan d1, TimeSpan a1, int? excludeId = null)
         {
             var allSchedules = await _scheduleRepository.GetAllAsync();
-            var activeSchedulesForBus = allSchedules.Where(s => s.BusId == busId && s.IsActive && s.ScheduleId != excludeId);
+            var activeSchedules = allSchedules.Where(s => s.IsActive && s.ScheduleId != excludeId);
 
-            foreach (var s in activeSchedulesForBus)
+            foreach (var s in activeSchedules)
             {
-                if (CheckOverlap(d1, a1, s.DepartureTime, s.ArrivalTime)) return true;
+                // Check bus overlap
+                if (s.BusId == busId && CheckOverlap(d1, a1, s.DepartureTime, s.ArrivalTime)) return true;
+                
+                // Check driver overlap (if driver is assigned)
+                if (driverId.HasValue && s.DriverId == driverId && CheckOverlap(d1, a1, s.DepartureTime, s.ArrivalTime)) return true;
             }
             return false;
         }

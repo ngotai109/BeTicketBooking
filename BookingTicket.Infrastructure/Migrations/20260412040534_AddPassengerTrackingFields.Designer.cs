@@ -4,6 +4,7 @@ using BookingTicket.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BookingTicket.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260412040534_AddPassengerTrackingFields")]
+    partial class AddPassengerTrackingFields
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -204,45 +207,6 @@ namespace BookingTicket.Infrastructure.Migrations
                     b.HasIndex("BusTypeId");
 
                     b.ToTable("Buses");
-                });
-
-            modelBuilder.Entity("BookingTicket.Domain.Entities.DriverLeaveRequests", b =>
-                {
-                    b.Property<int>("LeaveRequestId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("LeaveRequestId"));
-
-                    b.Property<string>("AdminNote")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("DriverId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("LeaveDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Reason")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
-                    b.Property<int>("Status")
-                        .HasColumnType("int");
-
-                    b.Property<int>("Type")
-                        .HasColumnType("int");
-
-                    b.HasKey("LeaveRequestId");
-
-                    b.HasIndex("DriverId");
-
-                    b.ToTable("DriverLeaveRequests");
                 });
 
             modelBuilder.Entity("BookingTicket.Domain.Entities.Drivers", b =>
@@ -517,12 +481,6 @@ namespace BookingTicket.Infrastructure.Migrations
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("TicketId"));
-
-                    b.Property<string>("ActualDropOffLocation")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime?>("ActualDropOffTime")
-                        .HasColumnType("datetime2");
 
                     b.Property<int>("BookingId")
                         .HasColumnType("int");
@@ -810,17 +768,6 @@ namespace BookingTicket.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("BusType");
-                });
-
-            modelBuilder.Entity("BookingTicket.Domain.Entities.DriverLeaveRequests", b =>
-                {
-                    b.HasOne("BookingTicket.Domain.Entities.Drivers", "Driver")
-                        .WithMany()
-                        .HasForeignKey("DriverId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Driver");
                 });
 
             modelBuilder.Entity("BookingTicket.Domain.Entities.Drivers", b =>

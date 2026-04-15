@@ -37,6 +37,8 @@ namespace BookingTicket.Infrastructure.Data
         public DbSet<Payments> Payments { get; set; }
         public DbSet<PaymentMethods> PaymentMethods { get; set; }
 
+        public DbSet<DriverLeaveRequests> DriverLeaveRequests { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);

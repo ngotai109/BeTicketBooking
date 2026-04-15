@@ -23,7 +23,6 @@ namespace BookingTicket.Infrastructure.Repositories
                 .Include(t => t.Route).ThenInclude(r => r.ArrivalOffice).ThenInclude(o => o.Ward)
                 .Include(t => t.Bus).ThenInclude(b => b.BusType)
                 .Include(t => t.Driver).ThenInclude(d => d.User)
-                .Include(t => t.TripSeats)
                 .AsQueryable();
 
             if (date.HasValue)
@@ -58,15 +57,37 @@ namespace BookingTicket.Infrastructure.Repositories
                 .Include(t => t.Route)
                     .ThenInclude(r => r.ArrivalOffice)
                 .Include(t => t.Bus)
+                .Include(t => t.TripSeats)
                 .Where(t => t.DriverId == driverId)
                 .OrderBy(t => t.DepartureTime)
                 .ToListAsync();
+        }
+
+        public async Task<Trips?> GetTripWithPassengerDetailsAsync(int tripId)
+        {
+            return await _context.Trips
+                .Include(t => t.TripSeats)
+                    .ThenInclude(ts => ts.Seat)
+                .Include(t => t.TripSeats)
+                    .ThenInclude(ts => ts.Tickets)
+                        .ThenInclude(tk => tk.Booking)
+                .FirstOrDefaultAsync(t => t.TripId == tripId);
         }
 
         public async Task<bool> IsBusOccupiedAsync(int busId, DateTime departureTime, DateTime arrivalTime, int? excludedTripId = null)
         {
             return await _context.Trips
                 .Where(t => t.BusId == busId && t.Status != TripStatus.Cancelled)
+                .Where(t => excludedTripId == null || t.TripId != excludedTripId)
+                .AnyAsync(t => (departureTime >= t.DepartureTime && departureTime < t.ArrivalTime) ||
+                               (arrivalTime > t.DepartureTime && arrivalTime <= t.ArrivalTime) ||
+                               (departureTime <= t.DepartureTime && arrivalTime >= t.ArrivalTime));
+        }
+
+        public async Task<bool> IsDriverOccupiedAsync(int driverId, DateTime departureTime, DateTime arrivalTime, int? excludedTripId = null)
+        {
+            return await _context.Trips
+                .Where(t => t.DriverId == driverId && t.Status != TripStatus.Cancelled)
                 .Where(t => excludedTripId == null || t.TripId != excludedTripId)
                 .AnyAsync(t => (departureTime >= t.DepartureTime && departureTime < t.ArrivalTime) ||
                                (arrivalTime > t.DepartureTime && arrivalTime <= t.ArrivalTime) ||

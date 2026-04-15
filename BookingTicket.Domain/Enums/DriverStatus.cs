@@ -5,6 +5,7 @@ namespace BookingTicket.Domain.Enums
         Available = 0,
         OnTrip = 1,
         OffDuty = 2,
-        Retired = 3
+        Retired = 3,
+        Locked = 4
     }
 }

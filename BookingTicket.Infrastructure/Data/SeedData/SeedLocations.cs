@@ -50,9 +50,8 @@ namespace BookingTicket.Infrastructure.Data.SeedData
             if (!await context.PaymentMethods.AnyAsync())
             {
                 context.PaymentMethods.AddRange(
-                    new PaymentMethods { PaymentType = "Tiền mặt" },
-                    new PaymentMethods { PaymentType = "Chuyển khoản / App" },
-                    new PaymentMethods { PaymentType = "VNPay" }
+                    new PaymentMethods { PaymentType = "VNPay" },
+                    new PaymentMethods { PaymentType = "PayOS" }
                 );
                 await context.SaveChangesAsync();
             }

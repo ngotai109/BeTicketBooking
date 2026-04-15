@@ -11,6 +11,8 @@ namespace BookingTicket.Domain.Interfaces.IRepositories
         Task<IEnumerable<Trips>> GetTripsWithDetailsAsync(DateTime? date, int? routeId);
         Task<Trips?> GetTripByIdWithDetailsAsync(int id);
         Task<IEnumerable<Trips>> GetTripsByDriverIdAsync(int driverId);
+        Task<Trips?> GetTripWithPassengerDetailsAsync(int tripId);
         Task<bool> IsBusOccupiedAsync(int busId, DateTime departureTime, DateTime arrivalTime, int? excludedTripId = null);
+        Task<bool> IsDriverOccupiedAsync(int driverId, DateTime departureTime, DateTime arrivalTime, int? excludedTripId = null);
     }
 }

@@ -70,7 +70,7 @@ namespace BookingTicket.Application.Services
                 CustomerEmail = request.CustomerEmail,
                 BookingDate = DateTime.Now,
                 TotalPrice = totalPrice,
-                Status = BookingStatus.Confirmed // Set to Confirmed to trigger reminder service
+                Status = BookingStatus.Pending // Bắt đầu ở trạng thái Chờ thanh toán (0)
             };
 
             await _bookingRepository.AddAsync(booking);
@@ -78,7 +78,7 @@ namespace BookingTicket.Application.Services
             // 3. Create Tickets and Update Seat Status
             foreach (var seat in tripSeats)
             {
-                seat.Status = SeatStatus.Booked;
+                seat.Status = SeatStatus.Booked; // Vẫn giữ chỗ để tránh người khác đặt trùng trong khi chờ thanh toán
                 await _tripSeatRepository.UpdateAsync(seat);
 
                 var trip = await _tripRepository.GetByIdAsync(seat.TripId);
@@ -94,69 +94,8 @@ namespace BookingTicket.Application.Services
             
             var result = await GetBookingByIdAsync(booking.BookingId);
 
-            // 4. Send Email Confirmation
-            if (result != null && !string.IsNullOrEmpty(booking.CustomerEmail))
-            {
-                Console.WriteLine($"[DEBUG] Đang chuẩn bị gửi mail xác nhận đến: {booking.CustomerEmail}");
-                
-                // Cần capture các thông tin cần thiết trước khi bắt đầu Task mới
-                var bookingId = booking.BookingId;
-                var customerEmail = booking.CustomerEmail;
-                var customerName = booking.CustomerName;
-                var totalPriceVal = booking.TotalPrice;
-                var firstTripSeatId = tripSeats.FirstOrDefault()?.TripSeatId;
-
-                _ = Task.Run(async () => {
-                    using (var scope = _scopeFactory.CreateScope())
-                    {
-                        try
-                        {
-                            var scopedTripRepo = scope.ServiceProvider.GetRequiredService<ITripRepository>();
-                            var scopedEmailService = scope.ServiceProvider.GetRequiredService<IEmailService>();
-                            var scopedTripSeatRepo = scope.ServiceProvider.GetRequiredService<ITripSeatRepository>();
-
-                            // Lấy thông tin chuyến đi từ DbContext mới
-                            int tripId = 0;
-                            if (firstTripSeatId.HasValue)
-                            {
-                                var seat = await scopedTripSeatRepo.GetByIdWithDetailsAsync(firstTripSeatId.Value);
-                                if (seat != null) tripId = seat.TripId;
-                            }
-
-                            var tripWithDetails = tripId > 0 ? await scopedTripRepo.GetTripByIdWithDetailsAsync(tripId) : null;
-                            
-                            string seats = string.Join(", ", result.Tickets.Select(t => t.SeatNumber));
-                            string routeName = tripWithDetails?.Route?.RouteName ?? "Đồng Hương Sông Lam";
-                            string plateNumber = tripWithDetails.Bus.PlateNumber;
-                            string depTime = tripWithDetails != null 
-                                ? $"{tripWithDetails.DepartureTime:HH:mm} ngày {tripWithDetails.DepartureTime:dd/MM/yyyy}" 
-                                : "Đang cập nhật";
-                           
-                            await scopedEmailService.SendTicketConfirmationAsync(
-                                customerEmail,
-                                customerName,
-                                $"DSL{bookingId:D6}",
-                                routeName,
-                                depTime,
-                                seats,
-                                totalPriceVal,
-                                plateNumber
-                            );
-                            Console.WriteLine($"[DEBUG] Đã gửi mail thành công đến: {customerEmail}");
-                        }
-                        catch (Exception ex)
-                        {
-                            Console.WriteLine("---- LỖI GỬI EMAIL (Background Task): ----");
-                            Console.WriteLine(ex.ToString());
-                            Console.WriteLine("-------------------------------------------");
-                        }
-                    }
-                });
-            }
-            else
-            {
-                Console.WriteLine("[DEBUG] Bỏ qua gửi mail: Booking null hoặc thiếu Email khách hàng.");
-            }
+            // 4. Bỏ phần gửi Mail xác nhận ngay lập tức tại đây. 
+            // Mail chỉ nên được gửi khi PaymentController nhận được Webhook thanh toán thành công từ PayOS/VNPay.
 
             return result;
         }
@@ -252,11 +191,62 @@ namespace BookingTicket.Application.Services
 
         public async Task<bool> UpdateBookingStatusAsync(int bookingId, int status)
         {
-            var booking = await _bookingRepository.GetByIdAsync(bookingId);
+            var booking = await _bookingRepository.GetByIdWithDetailsAsync(bookingId);
             if (booking == null) return false;
 
+            var oldStatus = booking.Status;
             booking.Status = (BookingStatus)status;
             await _bookingRepository.UpdateAsync(booking);
+
+            // Nếu chuyển sang trạng thái Confirmed (1) và trước đó chưa Confirmed
+            if (booking.Status == BookingStatus.Confirmed && oldStatus != BookingStatus.Confirmed)
+            {
+                // Gửi mail xác nhận thành công (Background Task)
+                _ = Task.Run(async () => {
+                    using (var scope = _scopeFactory.CreateScope())
+                    {
+                        try
+                        {
+                            var scopedBookingRepo = scope.ServiceProvider.GetRequiredService<IBookingRepository>();
+                            var scopedTripRepo = scope.ServiceProvider.GetRequiredService<ITripRepository>();
+                            var scopedEmailService = scope.ServiceProvider.GetRequiredService<IEmailService>();
+
+                            // Lấy lại data full với context mới
+                            var b = await scopedBookingRepo.GetByIdWithDetailsAsync(bookingId);
+                            if (b == null || string.IsNullOrEmpty(b.CustomerEmail)) return;
+
+                            var firstTicket = b.Tickets?.FirstOrDefault();
+                            if (firstTicket?.TripSeat == null) return;
+
+                            var trip = await scopedTripRepo.GetTripByIdWithDetailsAsync(firstTicket.TripSeat.TripId);
+                            
+                            string seats = string.Join(", ", b.Tickets.Select(t => t.TripSeat?.Seat?.SeatNumber ?? "N/A"));
+                            string routeName = trip?.Route?.RouteName ?? "Đồng Hương Sông Lam";
+                            string plateNumber = trip?.Bus?.PlateNumber ?? "N/A";
+                            string depTime = trip != null 
+                                ? $"{trip.DepartureTime:HH:mm} ngày {trip.DepartureTime:dd/MM/yyyy}" 
+                                : "N/A";
+
+                            await scopedEmailService.SendTicketConfirmationAsync(
+                                b.CustomerEmail,
+                                b.CustomerName,
+                                $"DSL{b.BookingId:D6}",
+                                routeName,
+                                depTime,
+                                seats,
+                                b.TotalPrice,
+                                plateNumber
+                            );
+                            Console.WriteLine($"[DEBUG] Đã gửi mail thành công sau thanh toán cho: {b.CustomerEmail}");
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine($"[ERROR] Lỗi gửi mail sau thanh toán: {ex.Message}");
+                        }
+                    }
+                });
+            }
+
             return true;
         }
 
@@ -303,7 +293,7 @@ namespace BookingTicket.Application.Services
 
         public async Task<IEnumerable<PassengerStatisticDto>> GetPassengersStatisticAsync()
         {
-            var bookings = await _bookingRepository.GetAllAsync();
+            var bookings = await _bookingRepository.GetAllWithDetailsAsync();
             var passengers = bookings
                 .Where(b => !string.IsNullOrEmpty(b.CustomerPhone))
                 .GroupBy(b => new { b.CustomerPhone, b.CustomerName })
@@ -313,8 +303,10 @@ namespace BookingTicket.Application.Services
                     PhoneNumber = g.Key.CustomerPhone,
                     Email = g.OrderByDescending(x => x.BookingDate).FirstOrDefault()?.CustomerEmail,
                     FullName = g.Key.CustomerName ?? "Khách hàng",
-                    // Chỉ đếm các vé không phải đã hủy (Status != 2)
+                    // Số lượng booking không phải đã hủy
                     TotalBookings = g.Count(x => x.Status != BookingStatus.Cancelled),
+                    // Số lượng VÉ không phải đã hủy
+                    TotalTickets = g.Where(x => x.Status != BookingStatus.Cancelled).Sum(x => x.Tickets?.Count ?? 0),
                     // Tổng tiền cũng chỉ tính vé không hủy
                     TotalSpent = g.Where(x => x.Status != BookingStatus.Cancelled).Sum(x => x.TotalPrice),
                     LastBooking = g.Max(x => x.BookingDate).ToString("yyyy-MM-dd"),
@@ -430,6 +422,77 @@ namespace BookingTicket.Application.Services
                 }
             }
 
+            return true;
+        }
+
+        public async Task<IEnumerable<object>> GetMidTripRequestsAsync()
+        {
+            var tickets = await _ticketRepository.GetAllAsync();
+            var waitingTickets = tickets.Where(t => t.Status == TicketStatus.WaittingDropOffConfirm).ToList();
+
+            var result = new List<object>();
+
+            foreach (var t in waitingTickets)
+            {
+                var booking = await _bookingRepository.GetByIdWithDetailsAsync(t.BookingId);
+                var seat = await _tripSeatRepository.GetByIdWithDetailsAsync(t.TripSeatId);
+                var trip = seat != null ? await _tripRepository.GetTripByIdWithDetailsAsync(seat.TripId) : null;
+
+                result.Add(new
+                {
+                    TicketId = t.TicketId,
+                    BookingId = t.BookingId,
+                    CustomerName = booking?.CustomerName ?? "N/A",
+                    CustomerPhone = booking?.CustomerPhone ?? "N/A",
+                    ActualDropOffLocation = t.ActualDropOffLocation ?? "Không rõ",
+                    ActualDropOffTime = t.ActualDropOffTime,
+                    RouteName = trip?.Route?.RouteName ?? "N/A",
+                    SeatNumber = seat?.Seat?.SeatNumber ?? "N/A",
+                    BusPlate = trip?.Bus?.PlateNumber ?? "N/A"
+                });
+            }
+
+            return result;
+        }
+
+        public async Task<bool> ApproveMidTripRequestAndSendMailAsync(int ticketId)
+        {
+            var ticket = await _ticketRepository.GetByIdAsync(ticketId);
+            if (ticket == null || ticket.Status != TicketStatus.WaittingDropOffConfirm) return false;
+
+            var booking = await _bookingRepository.GetByIdWithDetailsAsync(ticket.BookingId);
+            if (booking == null || string.IsNullOrEmpty(booking.CustomerEmail)) return false;
+
+            var seat = await _tripSeatRepository.GetByIdWithDetailsAsync(ticket.TripSeatId);
+            var trip = seat != null ? await _tripRepository.GetTripByIdWithDetailsAsync(seat.TripId) : null;
+
+            string bookingCode = $"DSL{booking.BookingId:D6}";
+            string approvalLink = $"http://localhost:3000/lookup/result?code={bookingCode}&phone={booking.CustomerPhone}&action=confirmDropOff&ticketId={ticketId}";
+            
+            await _emailService.SendMidTripDropOffConfirmationAsync(
+                booking.CustomerEmail,
+                booking.CustomerName ?? "Quý khách",
+                bookingCode,
+                trip?.Route?.RouteName ?? "Tuyến chưa xác định",
+                ticket.ActualDropOffLocation ?? "Không rõ",
+                approvalLink
+            );
+
+            // Tạm thời vẫn giữ status = WaittingDropOffConfirm, vì chờ khách click link
+            // Nhưng có thể cần thêm field EmailSent.
+            return true;
+        }
+
+        public async Task<bool> PassengerConfirmDropOffAsync(int ticketId)
+        {
+            var ticket = await _ticketRepository.GetByIdAsync(ticketId);
+            if (ticket == null || ticket.Status != TicketStatus.WaittingDropOffConfirm) return false;
+
+            // Khách xác nhận
+            ticket.IsDroppedOff = true;
+            ticket.Status = TicketStatus.Booked; // Hoặc nếu bạn muốn đánh dấu đã hoàn thành
+
+            await _ticketRepository.UpdateAsync(ticket);
             return true;
         }
     }

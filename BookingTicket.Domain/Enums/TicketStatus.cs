@@ -9,6 +9,7 @@ namespace BookingTicket.Domain.Enums
     public enum TicketStatus
     {
         Booked = 0,
-        Cancelled = 1
+        Cancelled = 1,
+        WaittingDropOffConfirm = 2
     }
 }

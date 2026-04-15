@@ -36,12 +36,18 @@ namespace BookingTicket.Infrastructure.Repositories
                 .Include(d => d.Trips)
                     .ThenInclude(t => t.Bus)
                 .Include(d => d.Trips)
-                    .ThenInclude(t => t.Tickets)
-                        .ThenInclude(tk => tk.Booking)
+                    .ThenInclude(t => t.TripSeats)
+                        .ThenInclude(ts => ts.Seat)
                 .Include(d => d.Trips)
-                    .ThenInclude(t => t.Tickets)
-                        .ThenInclude(tk => tk.TripSeat)
-                            .ThenInclude(ts => ts.Seat)
+                    .ThenInclude(t => t.TripSeats)
+                        .ThenInclude(ts => ts.Tickets)
+                            .ThenInclude(tk => tk.Booking)
+                .FirstOrDefaultAsync(d => d.DriverId == driverId);
+        }
+        public async Task<Drivers?> GetDriverWithUserAsync(int driverId)
+        {
+            return await _context.Drivers
+                .Include(d => d.User)
                 .FirstOrDefaultAsync(d => d.DriverId == driverId);
         }
     }

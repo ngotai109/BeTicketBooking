@@ -16,27 +16,37 @@ namespace BookingTicket.Application.Services
         private readonly ITripSeatRepository _tripSeatRepository;
         private readonly IScheduleRepository _scheduleRepository;
         private readonly ISeatRepository _seatRepository;
+        private readonly IBookingRepository _bookingRepository;
+        private readonly ITicketRepository _ticketRepository;
 
         public TripService(
             ITripRepository tripRepository,
             ITripSeatRepository tripSeatRepository,
             IScheduleRepository scheduleRepository,
-            ISeatRepository seatRepository)
+            ISeatRepository seatRepository,
+            IBookingRepository bookingRepository,
+            ITicketRepository ticketRepository)
         {
             _tripRepository = tripRepository;
             _tripSeatRepository = tripSeatRepository;
             _scheduleRepository = scheduleRepository;
             _seatRepository = seatRepository;
+            _bookingRepository = bookingRepository;
+            _ticketRepository = ticketRepository;
         }
 
         public async Task<IEnumerable<TripMonitoringDto>> GetTripsForMonitoringAsync(DateTime? date, int? routeId)
         {
             var trips = await _tripRepository.GetTripsWithDetailsAsync(date, routeId);
-            var result = new List<TripMonitoringDto>();
 
+            var tripIds = trips.Select(t => t.TripId).Distinct().ToList();
+            var seatCounts = await _tripSeatRepository.GetSeatCountsForTripsAsync(tripIds);
+
+            var result = new List<TripMonitoringDto>();
             foreach (var trip in trips)
             {
-                result.Add(await MapToMonitoringDto(trip));
+                seatCounts.TryGetValue(trip.TripId, out var counts);
+                result.Add(MapToMonitoringDtoSync(trip, counts.total, counts.booked));
             }
 
             return result;
@@ -49,14 +59,19 @@ namespace BookingTicket.Application.Services
 
             var tripSeats = await _tripSeatRepository.GetSeatsByTripIdAsync(tripId);
 
-            return tripSeats.Select(ts => new TripSeatDetailDto
-            {
-                TripSeatId = ts.TripSeatId,
-                SeatNumber = ts.Seat?.SeatNumber ?? $"#{ts.SeatId}",
-                Status = (int)ts.Status,
-                Floor = ts.Seat?.Floor ?? 1,
-                Row = ts.Seat?.Row ?? 0,
-                Column = ts.Seat?.Column ?? 0
+            return tripSeats.Select(ts => {
+                var firstTicket = ts.Tickets?.FirstOrDefault();
+                return new TripSeatDetailDto
+                {
+                    TripSeatId = ts.TripSeatId,
+                    SeatNumber = ts.Seat?.SeatNumber ?? $"#{ts.SeatId}",
+                    Status = (int)ts.Status,
+                    Floor = ts.Seat?.Floor ?? 1,
+                    Row = ts.Seat?.Row ?? 0,
+                    Column = ts.Seat?.Column ?? 0,
+                    CustomerName = firstTicket?.Booking?.CustomerName ?? string.Empty,
+                    PhoneNumber = firstTicket?.Booking?.CustomerPhone ?? string.Empty
+                };
             }).ToList();
         }
 
@@ -65,9 +80,35 @@ namespace BookingTicket.Application.Services
             var tripSeat = await _tripSeatRepository.GetByIdAsync(tripSeatId);
             if (tripSeat == null) return false;
 
-            tripSeat.Status = status == 1 ? SeatStatus.Booked : SeatStatus.Booked;
-
+            // 1. Cập nhật trạng thái ghế
+            tripSeat.Status = SeatStatus.Booked;
             await _tripSeatRepository.UpdateAsync(tripSeat);
+
+            // 2. Tạo Booking "thô" để lưu thông tin hành khách nếu được cung cấp
+            if (!string.IsNullOrEmpty(customerName) || !string.IsNullOrEmpty(phoneNumber))
+            {
+                var trip = await _tripRepository.GetByIdAsync(tripSeat.TripId);
+                
+                var booking = new Bookings
+                {
+                    CustomerName = customerName ?? "Khách lẻ",
+                    CustomerPhone = phoneNumber ?? "N/A",
+                    BookingDate = DateTime.Now,
+                    TotalPrice = trip?.TicketPrice ?? 0,
+                    Status = status == 1 ? BookingStatus.Pending : BookingStatus.Confirmed,
+                    AdminNote = "Đặt vé nhanh từ Admin"
+                };
+                await _bookingRepository.AddAsync(booking);
+
+                var ticket = new Tickets
+                {
+                    BookingId = booking.BookingId,
+                    TripSeatId = tripSeatId,
+                    Price = trip?.TicketPrice ?? 0
+                };
+                await _ticketRepository.AddAsync(ticket);
+            }
+
             return true;
         }
 
@@ -97,6 +138,12 @@ namespace BookingTicket.Application.Services
                         var isOccupied = await _tripRepository.IsBusOccupiedAsync(schedule.BusId, depTime, arrTime);
                         if (isOccupied) continue;
 
+                        if (schedule.DriverId.HasValue)
+                        {
+                            var isDriverOccupied = await _tripRepository.IsDriverOccupiedAsync(schedule.DriverId.Value, depTime, arrTime);
+                            if (isDriverOccupied) continue;
+                        }
+
                         await CreateNewTripFromSchedule(schedule, date);
                         tripsAdded = true;
                     }
@@ -122,6 +169,12 @@ namespace BookingTicket.Application.Services
             var isOccupied = await _tripRepository.IsBusOccupiedAsync(schedule.BusId, depTime, arrTime);
             if (isOccupied) return false;
 
+            if (schedule.DriverId.HasValue)
+            {
+                var isDriverOccupied = await _tripRepository.IsDriverOccupiedAsync(schedule.DriverId.Value, depTime, arrTime);
+                if (isDriverOccupied) return false;
+            }
+
             await CreateNewTripFromSchedule(schedule, departureDate);
 
             return true;
@@ -141,6 +194,10 @@ namespace BookingTicket.Application.Services
         {
             var trip = await _tripRepository.GetByIdAsync(tripId);
             if (trip == null) return false;
+
+            // Check if driver is occupied
+            var isOccupied = await _tripRepository.IsDriverOccupiedAsync(driverId, trip.DepartureTime, trip.ArrivalTime, tripId);
+            if (isOccupied) return false;
 
             trip.DriverId = driverId;
             await _tripRepository.UpdateAsync(trip);
@@ -184,25 +241,21 @@ namespace BookingTicket.Application.Services
                 return depMatch && destMatch;
             }).ToList();
 
+            var tripIds = filteredTrips.Select(t => t.TripId).Distinct().ToList();
+            var seatCounts = await _tripSeatRepository.GetSeatCountsForTripsAsync(tripIds);
+
             var result = new List<TripMonitoringDto>();
             foreach (var trip in filteredTrips)
             {
-                result.Add(await MapToMonitoringDto(trip));
+                seatCounts.TryGetValue(trip.TripId, out var counts);
+                result.Add(MapToMonitoringDtoSync(trip, counts.total, counts.booked));
             }
 
             return result;
         }
 
-        private async Task<TripMonitoringDto> MapToMonitoringDto(Trips trip)
+        private TripMonitoringDto MapToMonitoringDtoSync(Trips trip, int totalSeats, int bookedSeats)
         {
-            // Ensure seats exist for this trip
-            await EnsureTripSeatsExistAsync(trip.TripId);
-            
-            var tripSeats = await _tripSeatRepository.GetSeatsByTripIdAsync(trip.TripId);
-            var specificTripSeats = tripSeats.ToList();
-
-            var totalSeats = specificTripSeats.Count;
-            var bookedSeats = specificTripSeats.Count(ts => ts.Status == SeatStatus.Booked);
             var busType = trip.Bus?.BusType?.TypeName ?? "N/A";
 
             return new TripMonitoringDto

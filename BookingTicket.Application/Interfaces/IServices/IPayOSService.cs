@@ -6,7 +6,7 @@ namespace BookingTicket.Application.Interfaces.IServices
 {
     public interface IPayOSService
     {
-        Task<string> CreatePaymentLinkAsync(BookingDto booking);
+        Task<CreatePaymentResult> CreatePaymentLinkAsync(BookingDto booking);
         Task<bool> VerifyWebhookAsync(WebhookType body);
     }
 }

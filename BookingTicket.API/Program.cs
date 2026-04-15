@@ -17,11 +17,11 @@ builder.Services.AddControllers()
 
 builder.WebHost.ConfigureKestrel(options =>
 {
-    options.Limits.MaxRequestBodySize = 104857600; // 100MB
+    options.Limits.MaxRequestBodySize = 104857600; 
 });
 
 builder.Services.Configure<Microsoft.AspNetCore.Http.Features.FormOptions>(options => {
-    options.MultipartBodyLengthLimit = 104857600; // 100MB
+    options.MultipartBodyLengthLimit = 104857600; 
 });
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -57,6 +57,7 @@ builder.Services.AddAuthentication(options =>
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure();
 builder.Services.AddScoped<IVNPayService, VNPayService>();
+builder.Services.AddScoped<BookingTicket.Application.Interfaces.IServices.IDriverLeaveRequestService, BookingTicket.Application.Services.DriverLeaveRequestService>();
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowReactApp", policy =>

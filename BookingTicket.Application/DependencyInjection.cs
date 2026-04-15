@@ -8,7 +8,7 @@ namespace BookingTicket.Application
     {
        public static IServiceCollection AddApplication(this IServiceCollection services)
         {
-            // Services
+    
             services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<IRefreshTokenService, RefreshTokenService>();
             services.AddScoped<IUserService, UserService>();
@@ -25,7 +25,8 @@ namespace BookingTicket.Application
             services.AddScoped<IDashboardService, DashboardService>();
             services.AddScoped<IEmailService, EmailService>();
             services.AddHostedService<TripReminderBackgroundService>();
-            
+            services.AddHostedService<BookingCleanupBackgroundService>();
+       
             return services;
         }
     }

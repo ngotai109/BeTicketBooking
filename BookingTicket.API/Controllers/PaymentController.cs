@@ -3,9 +3,15 @@ using BookingTicket.Application.Services;
 using BookingTicket.Application.Interfaces.IServices;
 using System;
 using System.Threading.Tasks;
+using BookingTicket.Application.DTOs.Booking;
 
 namespace BookingTicket.API.Controllers
 {
+    public class PayOSRequest
+    {
+        public int BookingId { get; set; }
+    }
+
     [Route("api/[controller]")]
     [ApiController]
     public class PaymentController : ControllerBase
@@ -47,15 +53,15 @@ namespace BookingTicket.API.Controllers
         }
 
         [HttpPost("payos")]
-        public async Task<IActionResult> CreatePayOSPayment([FromBody] int bookingId)
+        public async Task<IActionResult> CreatePayOSPayment([FromBody] PayOSRequest request)
         {
             try
             {
-                var bookingDto = await _bookingService.GetBookingByIdAsync(bookingId);
+                var bookingDto = await _bookingService.GetBookingByIdAsync(request.BookingId);
                 if (bookingDto == null) return NotFound("Booking not found");
 
-                var url = await _payOSService.CreatePaymentLinkAsync(bookingDto);
-                return Ok(new { paymentUrl = url });
+                var result = await _payOSService.CreatePaymentLinkAsync(bookingDto);
+                return Ok(result);
             }
             catch (Exception ex)
             {
@@ -85,8 +91,9 @@ namespace BookingTicket.API.Controllers
                     // Better approach: Use orderCode as bookingId if possible or find mapping.
                     // For now, let's assume body.data.description contains "Thanh toán vé #ID"
                     
-                    var parts = body.data.description.Split('#');
-                    if (parts.Length > 1 && int.TryParse(parts[1], out int bookingId))
+                    // Phân tích mã vé DSLxxxxxx trong nội dung
+                    int dslIndex = body.data.description.IndexOf("DSL");
+                    if (dslIndex >= 0 && int.TryParse(body.data.description.Substring(dslIndex + 3), out int bookingId))
                     {
                          await _bookingService.UpdateBookingStatusAsync(bookingId, 1); // 1 = Confirmed/Paid
                     }
