@@ -78,7 +78,7 @@ namespace BookingTicket.Application.Services
             // 3. Create Tickets and Update Seat Status
             foreach (var seat in tripSeats)
             {
-                seat.Status = SeatStatus.Booked; // Vẫn giữ chỗ để tránh người khác đặt trùng trong khi chờ thanh toán
+                seat.Status = SeatStatus.Reserved; // Giữ chỗ (Holding) để tránh người khác đặt trùng trong khi chờ thanh toán
                 await _tripSeatRepository.UpdateAsync(seat);
 
                 var trip = await _tripRepository.GetByIdAsync(seat.TripId);
@@ -214,6 +214,16 @@ namespace BookingTicket.Application.Services
             // Nếu chuyển sang trạng thái Confirmed (1) và trước đó chưa Confirmed
             if (booking.Status == BookingStatus.Confirmed && oldStatus != BookingStatus.Confirmed)
             {
+                // Cập nhật trạng thái GHẾ sang Booked (Đã bán)
+                foreach (var ticket in booking.Tickets)
+                {
+                    if (ticket.TripSeat != null)
+                    {
+                        ticket.TripSeat.Status = SeatStatus.Booked;
+                        await _tripSeatRepository.UpdateAsync(ticket.TripSeat);
+                    }
+                }
+
                 // Gửi mail xác nhận thành công (Background Task)
                 _ = Task.Run(async () => {
                     using (var scope = _scopeFactory.CreateScope())

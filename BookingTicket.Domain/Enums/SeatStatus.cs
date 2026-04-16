@@ -9,6 +9,7 @@ namespace BookingTicket.Domain.Enums
     public enum SeatStatus
     {
         Available = 0,
-        Booked = 1
+        Booked = 1,
+        Reserved = 2
     }
 }
