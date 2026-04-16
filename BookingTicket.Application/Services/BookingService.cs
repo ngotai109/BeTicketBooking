@@ -198,6 +198,19 @@ namespace BookingTicket.Application.Services
             booking.Status = (BookingStatus)status;
             await _bookingRepository.UpdateAsync(booking);
 
+            // Giải phóng ghế nếu status là 2 (Cancelled)
+            if (booking.Status == BookingStatus.Cancelled && oldStatus != BookingStatus.Cancelled)
+            {
+                foreach (var ticket in booking.Tickets)
+                {
+                    if (ticket.TripSeat != null)
+                    {
+                        ticket.TripSeat.Status = SeatStatus.Available;
+                        await _tripSeatRepository.UpdateAsync(ticket.TripSeat);
+                    }
+                }
+            }
+
             // Nếu chuyển sang trạng thái Confirmed (1) và trước đó chưa Confirmed
             if (booking.Status == BookingStatus.Confirmed && oldStatus != BookingStatus.Confirmed)
             {

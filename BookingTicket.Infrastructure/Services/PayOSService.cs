@@ -28,7 +28,9 @@ namespace BookingTicket.Infrastructure.Services
         public async Task<CreatePaymentResult> CreatePaymentLinkAsync(BookingDto booking)
         {
             // Mã đơn hàng của PayOS yêu cầu là số Long (có thể dùng timestamp + bookingId)
-            long orderCode = long.Parse(DateTimeOffset.Now.ToString("ffffff") + booking.BookingId.ToString());
+            // Generate a unique order code using timestamp + booking ID to avoid collisions in PayOS Sandbox
+            string timePart = DateTimeOffset.Now.ToUnixTimeSeconds().ToString();
+            long orderCode = long.Parse(timePart.Substring(timePart.Length - 6) + booking.BookingId.ToString());
 
             var items = booking.Tickets.Select(t => new ItemData(
                 name: $"Vé xe {booking.RouteName} - Ghế {t.SeatNumber}",
