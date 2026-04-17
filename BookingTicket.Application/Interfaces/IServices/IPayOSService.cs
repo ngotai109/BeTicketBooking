@@ -8,5 +8,6 @@ namespace BookingTicket.Application.Interfaces.IServices
     {
         Task<CreatePaymentResult> CreatePaymentLinkAsync(BookingDto booking);
         Task<bool> VerifyWebhookAsync(WebhookType body);
+        Task<object> GetOrderDetailsAsync(long orderCode);
     }
 }

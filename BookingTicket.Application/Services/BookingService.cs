@@ -176,6 +176,9 @@ namespace BookingTicket.Application.Services
                     UserName = b.User?.FullName,
                     RouteName = routeName,
                     DepartureTime = depTime,
+                    RefundBankName = b.RefundBankName,
+                    RefundAccountNumber = b.RefundAccountNumber,
+                    RefundAccountName = b.RefundAccountName,
                     Tickets = b.Tickets?.Select(t => new TicketDto
                     {
                         TicketId = t.TicketId,
@@ -302,6 +305,9 @@ namespace BookingTicket.Application.Services
                 UserName = booking.User?.FullName,
                 RouteName = routeName,
                 DepartureTime = depTime,
+                RefundBankName = booking.RefundBankName,
+                RefundAccountNumber = booking.RefundAccountNumber,
+                RefundAccountName = booking.RefundAccountName,
                 Tickets = booking.Tickets?.Select(t => new TicketDto
                 {
                     TicketId = t.TicketId,
@@ -372,6 +378,9 @@ namespace BookingTicket.Application.Services
                         UserName = b.User?.FullName,
                         RouteName = routeName,
                         DepartureTime = depTime,
+                        RefundBankName = b.RefundBankName,
+                        RefundAccountNumber = b.RefundAccountNumber,
+                        RefundAccountName = b.RefundAccountName,
                         Tickets = b.Tickets?.Select(t => new TicketDto
                         {
                             TicketId = t.TicketId,
@@ -386,13 +395,17 @@ namespace BookingTicket.Application.Services
                 .ToList();
         }
 
-        public async Task<bool> RequestCancellationAsync(int bookingId, string reason)
+        public async Task<bool> RequestCancellationAsync(int bookingId, CancellationRequestDto request)
         {
             var booking = await _bookingRepository.GetByIdAsync(bookingId);
-            if (booking == null || booking.Status != BookingStatus.Confirmed) return false;
+            if (booking == null || (booking.Status != BookingStatus.Confirmed && booking.Status != BookingStatus.Pending)) return false;
 
             booking.Status = BookingStatus.RequestedCancellation;
-            booking.CancellationReason = reason;
+            booking.CancellationReason = request.Reason;
+            booking.RefundBankName = request.BankName;
+            booking.RefundAccountNumber = request.AccountNumber;
+            booking.RefundAccountName = request.AccountName;
+            
             await _bookingRepository.UpdateAsync(booking);
             return true;
         }

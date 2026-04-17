@@ -22,18 +22,23 @@ namespace BookingTicket.Infrastructure.Services
             string apiKey = _configuration["PayOS:ApiKey"] ?? "";
             string checksumKey = _configuration["PayOS:ChecksumKey"] ?? "";
 
+            if (string.IsNullOrEmpty(clientId) || string.IsNullOrEmpty(apiKey) || string.IsNullOrEmpty(checksumKey))
+            {
+                throw new Exception("PayOS configuration is missing in appsettings.json");
+            }
+
             _payOS = new Net.payOS.PayOS(clientId, apiKey, checksumKey);
         }
 
         public async Task<CreatePaymentResult> CreatePaymentLinkAsync(BookingDto booking)
         {
-            // Mã đơn hàng của PayOS yêu cầu là số Long (có thể dùng timestamp + bookingId)
-            // Generate a unique order code using timestamp + booking ID to avoid collisions in PayOS Sandbox
-            string timePart = DateTimeOffset.Now.ToUnixTimeSeconds().ToString();
-            long orderCode = long.Parse(timePart.Substring(timePart.Length - 6) + booking.BookingId.ToString());
+            // Mã đơn hàng của PayOS yêu cầu là số Long (số nguyên dương)
+            // Cải thiện tính duy nhất của mã đơn hàng bằng cách kết hợp timestamp và bookingId
+            // PayOS tối đa 18 chữ số cho OrderCode.
+            long orderCode = long.Parse(DateTime.Now.ToString("ddHHmm") + booking.BookingId.ToString().PadLeft(4, '0'));
 
             var items = booking.Tickets.Select(t => new ItemData(
-                name: $"Vé xe {booking.RouteName} - Ghế {t.SeatNumber}",
+                name: $"Ve xe DSL{booking.BookingId:D6} - Ghe {t.SeatNumber}",
                 quantity: 1,
                 price: (int)t.Price
             )).ToList();
@@ -44,16 +49,25 @@ namespace BookingTicket.Infrastructure.Services
                 amount: (int)booking.TotalPrice,
                 description: $"Thanh toan DSL{booking.BookingId:D6}",
                 items: items,
-                returnUrl: "http://localhost:3000/payment/payos-return", // Sau này đổi thành domain xịn
+                returnUrl: "http://localhost:3000/payment/payos-return",
                 cancelUrl: "http://localhost:3000/payment/payos-return"
             );
 
-            return await _payOS.createPaymentLink(paymentData);
+            try
+            {
+                var result = await _payOS.createPaymentLink(paymentData);
+                return result;
+            }
+            catch (Exception ex)
+            {
+                // Log lỗi chi tiết nếu có
+                Console.WriteLine($"[PAYOS_SERVICE_ERROR] {ex.Message}");
+                throw;
+            }
         }
 
         public async Task<bool> VerifyWebhookAsync(WebhookType body)
         {
-            // Xác thực dữ liệu Webhook từ PayOS để đảm bảo là thật
             try
             {
                 var webhookData = _payOS.verifyPaymentWebhookData(body);
@@ -63,6 +77,11 @@ namespace BookingTicket.Infrastructure.Services
             {
                 return false;
             }
+        }
+
+        public async Task<object> GetOrderDetailsAsync(long orderCode)
+        {
+            return await _payOS.getPaymentLinkInformation(orderCode);
         }
     }
 }

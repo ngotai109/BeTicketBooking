@@ -30,5 +30,10 @@ namespace BookingTicket.Domain.Entities
         // New fields for cancellation management
         public string? CancellationReason { get; set; }
         public string? AdminNote { get; set; }
+
+        // Refund Info
+        public string? RefundBankName { get; set; }
+        public string? RefundAccountNumber { get; set; }
+        public string? RefundAccountName { get; set; }
     }
 }

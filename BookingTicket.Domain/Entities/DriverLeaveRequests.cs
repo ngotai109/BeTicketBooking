@@ -28,6 +28,10 @@ namespace BookingTicket.Domain.Entities
         [MaxLength(500)]
         public string? AdminNote { get; set; }
 
+        public int? TripId { get; set; }
+        [ForeignKey("TripId")]
+        public virtual Trips? Trip { get; set; }
+
         public DateTime CreatedAt { get; set; } = DateTime.Now;
     }
 }

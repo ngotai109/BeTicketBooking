@@ -28,6 +28,9 @@ namespace BookingTicket.Application.DTOs.Booking
         public List<TicketDto> Tickets { get; set; } = new List<TicketDto>();
         public string? CancellationReason { get; set; }
         public string? AdminNote { get; set; }
+        public string? RefundBankName { get; set; }
+        public string? RefundAccountNumber { get; set; }
+        public string? RefundAccountName { get; set; }
     }
 
     public class TicketDto
@@ -41,6 +44,9 @@ namespace BookingTicket.Application.DTOs.Booking
     public class CancellationRequestDto
     {
         public string Reason { get; set; } = string.Empty;
+        public string? BankName { get; set; }
+        public string? AccountNumber { get; set; }
+        public string? AccountName { get; set; }
     }
 
     public class ProcessCancellationDto

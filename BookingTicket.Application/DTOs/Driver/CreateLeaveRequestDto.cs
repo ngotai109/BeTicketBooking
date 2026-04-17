@@ -12,9 +12,10 @@ namespace BookingTicket.Application.DTOs.Driver
         [Required]
         public LeaveType Type { get; set; }
 
-        [Required]
         [MaxLength(500)]
         public string Reason { get; set; }
+
+        public int? TripId { get; set; }
     }
 
     public class ProcessLeaveRequestDto

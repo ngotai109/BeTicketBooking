@@ -81,7 +81,7 @@ namespace BookingTicket.API.Controllers
         [HttpPost("{id}/request-cancellation")]
         public async Task<IActionResult> RequestCancellation(int id, [FromBody] CancellationRequestDto request)
         {
-            var success = await _bookingService.RequestCancellationAsync(id, request.Reason);
+            var success = await _bookingService.RequestCancellationAsync(id, request);
             if (!success) return BadRequest(new { message = "Không thể gửi yêu cầu hủy vé. Có thể vé đã bị hủy hoặc đang trong trạng thái xử lý." });
             return Ok(new { message = "Gửi yêu cầu hủy vé thành công. Vui lòng chờ admin phê duyệt." });
         }

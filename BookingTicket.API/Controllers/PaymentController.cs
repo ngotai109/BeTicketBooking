@@ -53,15 +53,30 @@ namespace BookingTicket.API.Controllers
         }
 
         [HttpPost("payos")]
-        public async Task<IActionResult> CreatePayOSPayment([FromBody] PayOSRequest request)
+        public async Task<IActionResult> CreatePayOSPayment([FromBody] PayOSRequest payOsRequest)
         {
             try
             {
-                var bookingDto = await _bookingService.GetBookingByIdAsync(request.BookingId);
+                var bookingDto = await _bookingService.GetBookingByIdAsync(payOsRequest.BookingId);
                 if (bookingDto == null) return NotFound("Booking not found");
 
-                var result = await _payOSService.CreatePaymentLinkAsync(bookingDto);
-                return Ok(result);
+                try
+                {
+                    var result = await _payOSService.CreatePaymentLinkAsync(bookingDto);
+                    return Ok(result);
+                }
+                catch (Exception ex)
+                {
+                    string errorMsg = $"[PAYOS_ERROR] {DateTime.Now}: {ex.Message}\n{ex.StackTrace}\n";
+                    if (ex.InnerException != null) errorMsg += $"Inner: {ex.InnerException.Message}\n";
+                    
+                    try {
+                        System.IO.File.AppendAllText("payos_error.txt", errorMsg);
+                    } catch {}
+
+                    Console.WriteLine(errorMsg);
+                    return StatusCode(500, new { message = "Lỗi khi kết nối với PayOS", details = ex.Message });
+                }
             }
             catch (Exception ex)
             {
@@ -78,20 +93,8 @@ namespace BookingTicket.API.Controllers
                 if (!isValid) return BadRequest("Invalid Webhook signature");
 
                 // Process payment result
-                // body.data.orderCode matches our generated orderCode
-                // PayOS uses orderCode to reference the transaction
-                
-                // Note: body.data.code == "00" usually means success
                 if (body.code == "00")
                 {
-                    // Update booking status
-                    // Since orderCode is long and contains bookingId at the end
-                    // In PayOSService: long.Parse(DateTimeOffset.Now.ToString("ffffff") + booking.BookingId.ToString())
-                    // This is a bit tricky to recover the ID. 
-                    // Better approach: Use orderCode as bookingId if possible or find mapping.
-                    // For now, let's assume body.data.description contains "Thanh toán vé #ID"
-                    
-                    // Phân tích mã vé DSLxxxxxx trong nội dung
                     int dslIndex = body.data.description.IndexOf("DSL");
                     if (dslIndex >= 0 && int.TryParse(body.data.description.Substring(dslIndex + 3), out int bookingId))
                     {
@@ -106,5 +109,30 @@ namespace BookingTicket.API.Controllers
                 return BadRequest(ex.Message);
             }
         }
+
+        [HttpPost("payos-check")]
+        public async Task<IActionResult> CheckPayOSStatus([FromBody] PayOSCheckRequest request)
+        {
+            try
+            {
+                dynamic orderInfo = await _payOSService.GetOrderDetailsAsync(request.OrderCode);
+                if (orderInfo != null && orderInfo.status == "PAID")
+                {
+                    await _bookingService.UpdateBookingStatusAsync(request.BookingId, 1);
+                    return Ok(new { status = "PAID", message = "Thanh toán thành công" });
+                }
+                return Ok(new { status = orderInfo.status });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+    }
+
+    public class PayOSCheckRequest
+    {
+        public int BookingId { get; set; }
+        public long OrderCode { get; set; }
     }
 }

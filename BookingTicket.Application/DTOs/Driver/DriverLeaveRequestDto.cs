@@ -14,6 +14,8 @@ namespace BookingTicket.Application.DTOs.Driver
         public string Reason { get; set; }
         public LeaveRequestStatus Status { get; set; }
         public string AdminNote { get; set; }
+        public int? TripId { get; set; }
+        public string? TripInfo { get; set; }
         public DateTime CreatedAt { get; set; }
     }
 }

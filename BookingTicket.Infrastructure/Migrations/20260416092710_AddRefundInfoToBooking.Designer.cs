@@ -4,6 +4,7 @@ using BookingTicket.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BookingTicket.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260416092710_AddRefundInfoToBooking")]
+    partial class AddRefundInfoToBooking
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -244,17 +247,12 @@ namespace BookingTicket.Infrastructure.Migrations
                     b.Property<int>("Status")
                         .HasColumnType("int");
 
-                    b.Property<int?>("TripId")
-                        .HasColumnType("int");
-
                     b.Property<int>("Type")
                         .HasColumnType("int");
 
                     b.HasKey("LeaveRequestId");
 
                     b.HasIndex("DriverId");
-
-                    b.HasIndex("TripId");
 
                     b.ToTable("DriverLeaveRequests");
                 });
@@ -834,13 +832,7 @@ namespace BookingTicket.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("BookingTicket.Domain.Entities.Trips", "Trip")
-                        .WithMany()
-                        .HasForeignKey("TripId");
-
                     b.Navigation("Driver");
-
-                    b.Navigation("Trip");
                 });
 
             modelBuilder.Entity("BookingTicket.Domain.Entities.Drivers", b =>

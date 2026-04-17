@@ -31,6 +31,7 @@ namespace BookingTicket.Application.Services
                 Type = requestDto.Type,
                 Reason = requestDto.Reason,
                 Status = LeaveRequestStatus.Pending,
+                TripId = requestDto.TripId,
                 CreatedAt = DateTime.Now
             };
 
@@ -48,6 +49,8 @@ namespace BookingTicket.Application.Services
             var requests = await _context.DriverLeaveRequests
                 .Include(r => r.Driver)
                 .ThenInclude(d => d.User)
+                .Include(r => r.Trip)
+                .ThenInclude(t => t.Route)
                 .Where(r => r.DriverId == driver.DriverId)
                 .OrderByDescending(r => r.CreatedAt)
                 .ToListAsync();
@@ -60,6 +63,8 @@ namespace BookingTicket.Application.Services
             var requests = await _context.DriverLeaveRequests
                 .Include(r => r.Driver)
                 .ThenInclude(d => d.User)
+                .Include(r => r.Trip)
+                .ThenInclude(t => t.Route)
                 .OrderByDescending(r => r.CreatedAt)
                 .ToListAsync();
 
@@ -104,6 +109,8 @@ namespace BookingTicket.Application.Services
                 Reason = request.Reason,
                 Status = request.Status,
                 AdminNote = request.AdminNote,
+                TripId = request.TripId,
+                TripInfo = request.Trip != null ? $"[{request.Trip.DepartureTime:HH:mm}] {request.Trip.Route?.RouteName}" : null,
                 CreatedAt = request.CreatedAt
             };
         }
