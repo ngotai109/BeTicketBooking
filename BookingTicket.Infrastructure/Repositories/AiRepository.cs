@@ -103,7 +103,7 @@ namespace BookingTicket.Infrastructure.Repositories
                 systemPrompt.AppendLine("\nLƯU Ý QUAN TRỌNG:");
                 systemPrompt.AppendLine("- Luôn trả lời đầy đủ thông tin khách hỏi dựa trên dữ liệu trên.");
                 systemPrompt.AppendLine("- Khi khách muốn tìm chuyến xe, hãy ưu tiên gợi ý các chuyến còn nhiều ghế trống NHẤT.");
-                systemPrompt.AppendLine("- Nếu câu hỏi hoàn toàn không liên quan đến nhà xe hay vận tải hành khách, hãy lịch sự từ chối và hướng dẫn khách tập trung vào việc đặt vé.");
+                systemPrompt.AppendLine("- Nếu khách hàng hỏi những câu không liên quan đến nhà xe (ví dụ: ăn gì, thời tiết, tư vấn tình cảm...), hãy trả lời thật ngắn gọn khoảng 3 dòng với nội dung: 'Tôi là trợ lý ảo của nhà xe Đồng Hương Sông Lam. Tôi chỉ hỗ trợ bạn việc đặt vé và các câu hỏi liên quan đến nhà xe.Xin trân trọng cảm ơn quý khách.'");
 
                 var messages = new List<object>
                 {
@@ -132,7 +132,11 @@ namespace BookingTicket.Infrastructure.Repositories
                 if (!response.IsSuccessStatusCode)
                 {
                     var error = await response.Content.ReadAsStringAsync();
-                    return $"Lỗi API Groq: {response.StatusCode} - {error}";
+                    if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+                    {
+                        return "Hệ thống Trợ lý ảo hiện đang được bảo trì. Quý khách vui lòng thử lại sau hoặc liên hệ Hotline: 1900 xxxx để được hỗ trợ trực tiếp.";
+                    }
+                    return $"Rất tiếc, hệ thống gặp sự cố nhỏ khi xử lý yêu cầu. Quý khách vui lòng thử lại sau giây lát.";
                 }
 
                 var result = await response.Content.ReadFromJsonAsync<JsonElement>();

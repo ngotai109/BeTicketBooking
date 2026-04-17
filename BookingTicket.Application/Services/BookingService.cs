@@ -464,7 +464,7 @@ namespace BookingTicket.Application.Services
         public async Task<IEnumerable<object>> GetMidTripRequestsAsync()
         {
             var tickets = await _ticketRepository.GetAllAsync();
-            var waitingTickets = tickets.Where(t => t.Status == TicketStatus.WaittingDropOffConfirm).ToList();
+            var waitingTickets = tickets.Where(t => t.Status == TicketStatus.WaittingDropOffConfirm || t.Status == TicketStatus.MidTripEmailSent).ToList();
 
             var result = new List<object>();
 
@@ -484,7 +484,8 @@ namespace BookingTicket.Application.Services
                     ActualDropOffTime = t.ActualDropOffTime,
                     RouteName = trip?.Route?.RouteName ?? "N/A",
                     SeatNumber = seat?.Seat?.SeatNumber ?? "N/A",
-                    BusPlate = trip?.Bus?.PlateNumber ?? "N/A"
+                    BusPlate = trip?.Bus?.PlateNumber ?? "N/A",
+                    Status = t.Status.ToString()
                 });
             }
 
@@ -514,15 +515,17 @@ namespace BookingTicket.Application.Services
                 approvalLink
             );
 
-            // Tạm thời vẫn giữ status = WaittingDropOffConfirm, vì chờ khách click link
-            // Nhưng có thể cần thêm field EmailSent.
+            // Cập nhật trạng thái sang Đã gửi mail, chờ khách xác nhận
+            ticket.Status = TicketStatus.MidTripEmailSent;
+            await _ticketRepository.UpdateAsync(ticket);
+
             return true;
         }
 
         public async Task<bool> PassengerConfirmDropOffAsync(int ticketId)
         {
             var ticket = await _ticketRepository.GetByIdAsync(ticketId);
-            if (ticket == null || ticket.Status != TicketStatus.WaittingDropOffConfirm) return false;
+            if (ticket == null || (ticket.Status != TicketStatus.WaittingDropOffConfirm && ticket.Status != TicketStatus.MidTripEmailSent)) return false;
 
             // Khách xác nhận
             ticket.IsDroppedOff = true;

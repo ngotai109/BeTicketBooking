@@ -205,20 +205,23 @@ namespace BookingTicket.Api.Controllers
         }
 
         [HttpGet("my-trips/{tripId}/passengers")]
-        [Authorize(Roles = "Driver")]
+        [Authorize(Roles = "Driver,Admin")]
         public async Task<ActionResult<IEnumerable<object>>> GetTripPassengers(int tripId)
         {
-            var userId = _userManager.GetUserId(User);
-            var driver = await _driverRepository.GetByUserIdAsync(userId);
-            if (driver == null) return NotFound(new { message = "Không tìm thấy hồ sơ tài xế." });
-            
             var trip = await _tripRepository.GetTripWithPassengerDetailsAsync(tripId);
-            
+
             if (trip == null) return NotFound(new { message = "Không tìm thấy chuyến xe." });
-            if (trip.DriverId != driver.DriverId) return Forbidden();
+            
+            // Nếu là Driver thì phải là chuyến của mình. Admin thì được xem hết.
+            if (User.IsInRole("Driver") && !User.IsInRole("Admin"))
+            {
+                var userId = _userManager.GetUserId(User);
+                var driver = await _driverRepository.GetByUserIdAsync(userId);
+                if (driver == null || trip.DriverId != driver.DriverId) return Forbidden();
+            }
 
             var result = trip.TripSeats?
-                .Where(ts => ts.Status == SeatStatus.Booked)
+                .Where(ts => ts.Status == SeatStatus.Booked || ts.Status == SeatStatus.Reserved)
                 .Select(ts => {
                     var tk = ts.Tickets?.FirstOrDefault();
                     return new
@@ -226,7 +229,7 @@ namespace BookingTicket.Api.Controllers
                         SeatNumber = ts.Seat?.SeatNumber ?? "N/A",
                         CustomerName = tk?.Booking?.CustomerName ?? "Khách lẻ (Admin đặt)",
                         PhoneNumber = tk?.Booking?.CustomerPhone ?? "N/A",
-                        Status = tk?.Booking?.Status.ToString() ?? "Confirmed",
+                        Status = tk?.Status.ToString() ?? "Booked",
                         BookingId = tk?.BookingId,
                         TicketId = tk?.TicketId,
                         IsBoarded = tk?.IsBoarded ?? false,

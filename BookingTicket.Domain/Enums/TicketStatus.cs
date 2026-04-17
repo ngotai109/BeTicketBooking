@@ -10,6 +10,7 @@ namespace BookingTicket.Domain.Enums
     {
         Booked = 0,
         Cancelled = 1,
-        WaittingDropOffConfirm = 2
+        WaittingDropOffConfirm = 2,
+        MidTripEmailSent = 3
     }
 }
