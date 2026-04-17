@@ -11,10 +11,12 @@ namespace BookingTicket.API.Controllers
     public class BookingController : ControllerBase
     {
         private readonly IBookingService _bookingService;
+        private readonly IDriverLeaveRequestService _leaveRequestService;
 
-        public BookingController(IBookingService bookingService)
+        public BookingController(IBookingService bookingService, IDriverLeaveRequestService leaveRequestService)
         {
             _bookingService = bookingService;
+            _leaveRequestService = leaveRequestService;
         }
 
         [HttpGet]
@@ -130,10 +132,15 @@ namespace BookingTicket.API.Controllers
             var midTripRequests = await _bookingService.GetMidTripRequestsAsync();
             var dropOffCount = System.Linq.Enumerable.Count(midTripRequests);
 
+            // 3. Get Pending Leave Requests count
+            var allLeaveReqs = await _leaveRequestService.GetAllLeaveRequestsAsync();
+            var leaveCount = System.Linq.Enumerable.Count(allLeaveReqs, r => r.Status == BookingTicket.Domain.Enums.LeaveRequestStatus.Pending);
+
             return Ok(new {
                 cancellationRequests = cancellationCount,
                 dropOffRequests = dropOffCount,
-                totalCount = cancellationCount + dropOffCount
+                leaveRequests = leaveCount,
+                totalCount = cancellationCount + dropOffCount + leaveCount
             });
         }
     }

@@ -56,8 +56,8 @@ namespace BookingTicket.Application.Services
                 
                 // Tìm các booking trạng thái Pending và đã quá 15 phút
                 var expiredBookings = allBookings.Where(b => 
-                    b.Status == BookingStatus.Pending && 
-                    b.BookingDate < DateTime.Now.AddMinutes(-15)
+                b.Status == BookingStatus.Pending && 
+                b.BookingDate < DateTime.Now.AddMinutes(-30)
                 ).ToList();
 
                 if (expiredBookings.Any())

@@ -95,7 +95,7 @@ namespace BookingTicket.API.Controllers
         public async Task<IActionResult> AssignDriver(int id, [FromQuery] int driverId)
         {
             var result = await _tripService.AssignDriverAsync(id, driverId);
-            if (!result) return NotFound(new { message = "Không thể gán tài xế cho chuyến đi này." });
+            if (!result) return BadRequest(new { message = "Không thể gán tài xế. Tài xế này đang bận ở một chuyến khác trong khoảng thời gian này." });
             return Ok(new { message = "Gán tài xế thành công." });
         }
 

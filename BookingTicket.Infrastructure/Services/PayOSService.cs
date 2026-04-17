@@ -32,10 +32,8 @@ namespace BookingTicket.Infrastructure.Services
 
         public async Task<CreatePaymentResult> CreatePaymentLinkAsync(BookingDto booking)
         {
-            // Mã đơn hàng của PayOS yêu cầu là số Long (số nguyên dương)
-            // Cải thiện tính duy nhất của mã đơn hàng bằng cách kết hợp timestamp và bookingId
-            // PayOS tối đa 18 chữ số cho OrderCode.
-            long orderCode = long.Parse(DateTime.Now.ToString("ddHHmm") + booking.BookingId.ToString().PadLeft(4, '0'));
+            // Sử dụng BookingDate ổn định để OrderCode không thay đổi khi load lại link
+            long orderCode = long.Parse(booking.BookingDate.ToString("ddHHmm") + booking.BookingId.ToString().PadLeft(4, '0'));
 
             var items = booking.Tickets.Select(t => new ItemData(
                 name: $"Ve xe DSL{booking.BookingId:D6} - Ghe {t.SeatNumber}",
