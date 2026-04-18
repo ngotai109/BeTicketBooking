@@ -10,5 +10,6 @@ namespace BookingTicket.Application.Interfaces.IServices
         Task<IEnumerable<DriverLeaveRequestDto>> GetMyLeaveRequestsAsync(string userId);
         Task<IEnumerable<DriverLeaveRequestDto>> GetAllLeaveRequestsAsync();
         Task<bool> ProcessLeaveRequestAsync(int requestId, ProcessLeaveRequestDto processDto);
+        Task<int> GetPendingLeaveRequestCountAsync();
     }
 }

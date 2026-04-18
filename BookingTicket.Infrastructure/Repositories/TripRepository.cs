@@ -19,6 +19,7 @@ namespace BookingTicket.Infrastructure.Repositories
         public async Task<IEnumerable<Trips>> GetTripsWithDetailsAsync(DateTime? date, int? routeId)
         {
             var query = _context.Trips
+                .AsNoTracking()
                 .Include(t => t.Route).ThenInclude(r => r.DepartureOffice).ThenInclude(o => o.Ward)
                 .Include(t => t.Route).ThenInclude(r => r.ArrivalOffice).ThenInclude(o => o.Ward)
                 .Include(t => t.Bus).ThenInclude(b => b.BusType)
@@ -41,6 +42,7 @@ namespace BookingTicket.Infrastructure.Repositories
         public async Task<Trips?> GetTripByIdWithDetailsAsync(int id)
         {
             return await _context.Trips
+                .AsNoTracking()
                 .Include(t => t.Route)
                 .Include(t => t.Bus)
                     .ThenInclude(b => b.BusType)
@@ -52,6 +54,7 @@ namespace BookingTicket.Infrastructure.Repositories
         public async Task<IEnumerable<Trips>> GetTripsByDriverIdAsync(int driverId)
         {
             return await _context.Trips
+                .AsNoTracking()
                 .Include(t => t.Route)
                     .ThenInclude(r => r.DepartureOffice)
                 .Include(t => t.Route)
@@ -66,6 +69,7 @@ namespace BookingTicket.Infrastructure.Repositories
         public async Task<Trips?> GetTripWithPassengerDetailsAsync(int tripId)
         {
             return await _context.Trips
+                .AsNoTracking()
                 .Include(t => t.TripSeats)
                     .ThenInclude(ts => ts.Seat)
                 .Include(t => t.TripSeats)

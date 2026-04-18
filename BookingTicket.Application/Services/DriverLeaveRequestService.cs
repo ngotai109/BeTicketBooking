@@ -61,6 +61,7 @@ namespace BookingTicket.Application.Services
         public async Task<IEnumerable<DriverLeaveRequestDto>> GetAllLeaveRequestsAsync()
         {
             var requests = await _context.DriverLeaveRequests
+                .AsNoTracking()
                 .Include(r => r.Driver)
                 .ThenInclude(d => d.User)
                 .Include(r => r.Trip)
@@ -94,6 +95,12 @@ namespace BookingTicket.Application.Services
 
             await _context.SaveChangesAsync();
             return true;
+        }
+
+        public async Task<int> GetPendingLeaveRequestCountAsync()
+        {
+            return await _context.DriverLeaveRequests
+                .CountAsync(r => r.Status == LeaveRequestStatus.Pending);
         }
 
         private DriverLeaveRequestDto MapToDto(DriverLeaveRequests request, Drivers driver)

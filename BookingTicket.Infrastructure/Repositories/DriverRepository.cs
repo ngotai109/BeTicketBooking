@@ -23,6 +23,7 @@ namespace BookingTicket.Infrastructure.Repositories
         public async Task<IEnumerable<Drivers>> GetAllWithDetailsAsync()
         {
             return await _context.Drivers
+                .AsNoTracking()
                 .Include(d => d.User)
                 .ToListAsync();
         }
@@ -30,6 +31,7 @@ namespace BookingTicket.Infrastructure.Repositories
         public async Task<Drivers?> GetByIdWithDetailsAsync(int driverId)
         {
             return await _context.Drivers
+                .AsNoTracking()
                 .Include(d => d.User)
                 .Include(d => d.Trips)
                     .ThenInclude(t => t.Route)

@@ -16,6 +16,7 @@ namespace BookingTicket.Infrastructure.Repositories
         public async Task<IEnumerable<Schedules>> GetAllWithDetailsAsync()
         {
             return await _context.Schedules
+                .AsNoTracking()
                 .Include(s => s.Route)
                 .Include(s => s.Bus)
                 .Include(s => s.Driver).ThenInclude(d => d.User)
@@ -25,6 +26,7 @@ namespace BookingTicket.Infrastructure.Repositories
         public async Task<Schedules?> GetByIdWithDetailsAsync(int id)
         {
             return await _context.Schedules
+                .AsNoTracking()
                 .Include(s => s.Route)
                 .Include(s => s.Bus)
                 .Include(s => s.Driver).ThenInclude(d => d.User)

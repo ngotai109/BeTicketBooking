@@ -20,6 +20,11 @@ namespace BookingTicket.Application.Interfaces.IServices
         
         Task<IEnumerable<object>> GetMidTripRequestsAsync();
         Task<bool> ApproveMidTripRequestAndSendMailAsync(int ticketId);
-        Task<bool> PassengerConfirmDropOffAsync(int ticketId);
+        Task<bool> PassengerConfirmDropOffAsync(int ticketId, string note = null);
+        Task<bool> PassengerRejectDropOffAsync(int ticketId, string note = null);
+
+        // Admin notifications
+        Task<int> GetPendingCancellationCountAsync();
+        Task<int> GetMidTripDropOffCountAsync();
     }
 }

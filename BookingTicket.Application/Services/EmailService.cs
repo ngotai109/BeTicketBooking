@@ -203,19 +203,19 @@ namespace BookingTicket.Application.Services
             await SendEmailAsync(to, subject, body);
         }
 
-        public async Task SendMidTripDropOffConfirmationAsync(string to, string customerName, string bookingCode, string routeName, string dropOffLocation, string approvalLink)
+        public async Task SendMidTripDropOffConfirmationAsync(string to, string customerName, string bookingCode, string routeName, string dropOffLocation, string approvalLink, string rejectionLink)
         {
             string subject = $"[Xác nhận] Yêu cầu xuống xe dọc đường - Mã vé: {bookingCode}";
             
             string body = $@"
                 <div style='font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; border: 1px solid #ddd; padding: 20px; border-radius: 10px;'>
                     <div style='text-align: center; margin-bottom: 20px;'>
-                        <h2 style='color: #dd6b20;'>XÁC NHẬN XUỐNG XE DỌC ĐƯỜNG</h2>
+                        <h2 style='color: #dd6b20;'>YÊU CẦU XÁC NHẬN XUỐNG XE</h2>
                         <p style='font-size: 16px;'>Chuyến xe: <strong>{routeName}</strong></p>
                     </div>
                     
                     <p>Chào <strong>{customerName}</strong>,</p>
-                    <p>Hệ thống nhận được thông báo từ tài xế rằng bạn đã yêu cầu xuống xe trước khi đến bến cuối. Vui lòng xác nhận thông tin dưới đây để chúng tôi đảm bảo an toàn cho chuyến đi của bạn:</p>
+                    <p>Hệ thống nhận được thông báo từ tài xế rằng bạn đã xuống xe dọc đường. Vui lòng xác nhận thông tin dưới đây để chúng tôi cập nhật trạng thái chuyến đi:</p>
                     
                     <div style='background-color: #feebc8; padding: 15px; border-radius: 5px; margin-bottom: 20px; border: 1px dashed #dd6b20;'>
                         <ul style='list-style-type: none; padding: 0;'>
@@ -224,13 +224,16 @@ namespace BookingTicket.Application.Services
                         </ul>
                     </div>
                     
-                    <p style='text-align: center; margin: 30px 0;'>
-                        <a href='{approvalLink}' style='background-color: #dd6b20; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold; font-size: 16px;'>XÁC NHẬN ĐÃ XUỐNG XE</a>
-                    </p>
+                    <div style='text-align: center; margin: 30px 0;'>
+                        <div style='display: inline-block; margin-bottom: 15px;'>
+                            <a href='{approvalLink}' style='background-color: #38a169; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold; font-size: 16px; display: inline-block; margin: 0 10px;'>XÁC NHẬN ĐÃ XUỐNG XE</a>
+                            <a href='{rejectionLink}' style='background-color: #e53e3e; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold; font-size: 16px; display: inline-block; margin: 0 10px;'>TÔI CHƯA XUỐNG XE</a>
+                        </div>
+                    </div>
                     
                     <p style='font-size: 13px; color: #718096;'>
-                        * Việc xác nhận giúp nhà xe hoàn thành hồ sơ chuyến đi và là cơ sở để hỗ trợ bạn nếu có vấn đề tranh chấp, thất lạc hành lý xảy ra.<br/>
-                        * Nếu bạn chưa xuống xe hoặc địa điểm không đúng, vui lòng phản hồi với tài xế hoặc gọi lên tổng đài.
+                        * Việc xác nhận giúp nhà xe hoàn thành hồ sơ chuyến đi và đảm bảo an toàn cho hành khách.<br/>
+                        * Nếu bạn chưa xuống xe hoặc địa điểm không đúng, vui lòng nhấn <strong>TÔI CHƯA XUỐNG XE</strong> hoặc gọi Hotline ngay lập tức.
                     </p>
                     
                     <hr style='border: 0; border-top: 1px solid #eee; margin: 20px 0;'>

@@ -278,6 +278,7 @@ namespace BookingTicket.Api.Controllers
 
             ticket.Status = TicketStatus.WaittingDropOffConfirm;
             ticket.ActualDropOffLocation = request.ActualDropOffLocation;
+            ticket.DropOffReason = request.Reason;
             ticket.ActualDropOffTime = DateTime.Now;
 
             await _ticketRepository.UpdateAsync(ticket);

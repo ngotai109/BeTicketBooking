@@ -19,6 +19,7 @@ namespace BookingTicket.Infrastructure.Repositories
         public async Task<IEnumerable<Bookings>> GetBookingsByUserIdAsync(string userId)
         {
             return await _context.Bookings
+                .AsNoTracking()
                 .Include(b => b.Tickets)
                     .ThenInclude(t => t.TripSeat)
                         .ThenInclude(ts => ts.Trip)
@@ -43,6 +44,7 @@ namespace BookingTicket.Infrastructure.Repositories
         public async Task<Bookings?> GetByIdWithDetailsAsync(int id)
         {
             return await _context.Bookings
+                .AsNoTracking()
                 .Include(b => b.User)
                 .Include(b => b.Tickets)
                     .ThenInclude(t => t.TripSeat)
@@ -80,6 +82,7 @@ namespace BookingTicket.Infrastructure.Repositories
         public async Task<IEnumerable<Bookings>> GetAllWithDetailsAsync()
         {
             return await _context.Bookings
+                .AsNoTracking()
                 .Include(b => b.User)
                 .Include(b => b.Tickets)
                     .ThenInclude(t => t.TripSeat)

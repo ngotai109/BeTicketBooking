@@ -14,5 +14,6 @@ namespace BookingTicket.Domain.Interfaces.IRepositories
         Task UpdateAsync(T entity);
         Task DeleteAsync(T entity);
         Task<bool> ExistsAsync(Expression<Func<T, bool>> predicate);
+        Task<int> CountAsync(Expression<Func<T, bool>> predicate);
     }
 }

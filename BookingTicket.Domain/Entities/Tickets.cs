@@ -23,7 +23,9 @@ namespace BookingTicket.Domain.Entities
         public bool IsDroppedOff { get; set; } = false; // Tài xế xác nhận khách đã xuống xe
 
         public string? ActualDropOffLocation { get; set; } // Điểm xuống xe giữa dọc đường (do tài xế nhập)
+        public string? DropOffReason { get; set; } // Lý do xuống xe dọc đường
         public DateTime? ActualDropOffTime { get; set; } // Thời gian khách xuống xe giữa dọc đường
+        public string? PassengerNote { get; set; } // Phản hồi/Ghi chú của hành khách khi xác nhận/từ chối xuống xe
 
         public DateTime CreatedAt { get; set; } = DateTime.Now;
     }

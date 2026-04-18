@@ -114,27 +114,37 @@ namespace BookingTicket.API.Controllers
         }
 
         [HttpPost("mid-trip-requests/{ticketId}/confirm")]
-        public async Task<IActionResult> PassengerConfirmDropOff(int ticketId)
+        public async Task<IActionResult> PassengerConfirmDropOff(int ticketId, [FromBody] MidTripResponseDto request)
         {
-            var success = await _bookingService.PassengerConfirmDropOffAsync(ticketId);
+            var success = await _bookingService.PassengerConfirmDropOffAsync(ticketId, request.Note);
             if (!success) return BadRequest(new { message = "Không thể xác nhận. Vé không tồn tại hoặc đã được xác nhận trước đó." });
             return Ok(new { message = "Xác nhận xuống xe thành công." });
         }
+
+        [HttpPost("mid-trip-requests/{ticketId}/reject")]
+        public async Task<IActionResult> PassengerRejectDropOff(int ticketId, [FromBody] MidTripResponseDto request)
+        {
+            var success = await _bookingService.PassengerRejectDropOffAsync(ticketId, request.Note);
+            if (!success) return BadRequest(new { message = "Không thể từ chối. Vé không tồn tại hoặc trạng thái không hợp lệ." });
+            return Ok(new { message = "Đã ghi nhận yêu cầu từ chối của bạn. Chúng tôi sẽ liên hệ để xác minh." });
+        }
+
+    public class MidTripResponseDto
+    {
+        public string? Note { get; set; }
+    }
 
         [HttpGet("admin-notifications")]
         public async Task<ActionResult<object>> GetAdminNotifications()
         {
             // 1. Get Cancellation Requests count
-            var bookings = await _bookingService.GetAllBookingsAsync();
-            var cancellationCount = System.Linq.Enumerable.Count(bookings, b => b.Status == 4);
+            var cancellationCount = await _bookingService.GetPendingCancellationCountAsync();
 
             // 2. Get Mid-trip Drop off requests count
-            var midTripRequests = await _bookingService.GetMidTripRequestsAsync();
-            var dropOffCount = System.Linq.Enumerable.Count(midTripRequests);
+            var dropOffCount = await _bookingService.GetMidTripDropOffCountAsync();
 
             // 3. Get Pending Leave Requests count
-            var allLeaveReqs = await _leaveRequestService.GetAllLeaveRequestsAsync();
-            var leaveCount = System.Linq.Enumerable.Count(allLeaveReqs, r => r.Status == BookingTicket.Domain.Enums.LeaveRequestStatus.Pending);
+            var leaveCount = await _leaveRequestService.GetPendingLeaveRequestCountAsync();
 
             return Ok(new {
                 cancellationRequests = cancellationCount,
