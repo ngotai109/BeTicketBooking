@@ -15,6 +15,8 @@ builder.Services.AddControllers()
         options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
     });
 
+builder.Services.AddSignalR();
+
 builder.WebHost.ConfigureKestrel(options =>
 {
     options.Limits.MaxRequestBodySize = 104857600; 
@@ -58,6 +60,7 @@ builder.Services.AddApplication();
 builder.Services.AddInfrastructure();
 builder.Services.AddScoped<IVNPayService, VNPayService>();
 builder.Services.AddScoped<BookingTicket.Application.Interfaces.IServices.IDriverLeaveRequestService, BookingTicket.Application.Services.DriverLeaveRequestService>();
+builder.Services.AddScoped<BookingTicket.Application.Interfaces.IServices.INotificationService, BookingTicket.API.Services.NotificationService>();
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowReactApp", policy =>
@@ -109,5 +112,6 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+app.MapHub<BookingTicket.API.Hubs.NotificationHub>("/notificationHub");
 
 app.Run();

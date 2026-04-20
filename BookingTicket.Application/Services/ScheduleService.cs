@@ -1,4 +1,4 @@
-using AutoMapper;
+    using AutoMapper;
 using BookingTicket.Application.DTOs.Schedule;
 using BookingTicket.Domain.Interfaces.IRepositories;
 using BookingTicket.Application.Interfaces.IServices;
@@ -94,7 +94,7 @@ namespace BookingTicket.Application.Services
             return false;
         }
 
-        private bool CheckOverlap(TimeSpan d1, TimeSpan a1, TimeSpan d2, TimeSpan a2)
+        private static bool CheckOverlap(TimeSpan d1, TimeSpan a1, TimeSpan d2, TimeSpan a2)
         {
             var intervals1 = GetIntervals(d1, a1);
             var intervals2 = GetIntervals(d2, a2);
@@ -111,7 +111,7 @@ namespace BookingTicket.Application.Services
             return false;
         }
 
-        private List<(TimeSpan, TimeSpan)> GetIntervals(TimeSpan d, TimeSpan a)
+        private static List<(TimeSpan, TimeSpan)> GetIntervals(TimeSpan d, TimeSpan a)
         {
             var list = new List<(TimeSpan, TimeSpan)>();
             if (a > d)

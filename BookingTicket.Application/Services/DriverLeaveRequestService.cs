@@ -13,10 +13,12 @@ namespace BookingTicket.Application.Services
     public class DriverLeaveRequestService : IDriverLeaveRequestService
     {
         private readonly IApplicationDbContext _context;
+        private readonly INotificationService _notificationService;
 
-        public DriverLeaveRequestService(IApplicationDbContext context)
+        public DriverLeaveRequestService(IApplicationDbContext context, INotificationService notificationService)
         {
             _context = context;
+            _notificationService = notificationService;
         }
 
         public async Task<DriverLeaveRequestDto> SubmitLeaveRequestAsync(string userId, CreateLeaveRequestDto requestDto)
@@ -38,6 +40,9 @@ namespace BookingTicket.Application.Services
             _context.DriverLeaveRequests.Add(request);
             await _context.SaveChangesAsync();
 
+            // Notify Admin
+            await _notificationService.SendNotificationToAllAsync($"Tài xế {driver?.User?.FullName} đã gửi yêu cầu nghỉ: {request.Reason}");
+
             return MapToDto(request, driver);
         }
 
@@ -46,30 +51,49 @@ namespace BookingTicket.Application.Services
             var driver = await _context.Drivers.FirstOrDefaultAsync(d => d.UserId == userId);
             if (driver == null) return new List<DriverLeaveRequestDto>();
 
-            var requests = await _context.DriverLeaveRequests
-                .Include(r => r.Driver)
-                .ThenInclude(d => d.User)
-                .Include(r => r.Trip)
-                .ThenInclude(t => t.Route)
+            return await _context.DriverLeaveRequests
+                .AsNoTracking()
                 .Where(r => r.DriverId == driver.DriverId)
                 .OrderByDescending(r => r.CreatedAt)
+                .Select(r => new DriverLeaveRequestDto
+                {
+                    LeaveRequestId = r.LeaveRequestId,
+                    DriverId = r.DriverId,
+                    DriverName = r.Driver.User.FullName ?? "Unknown",
+                    LicenseNumber = r.Driver.LicenseNumber ?? "",
+                    LeaveDate = r.LeaveDate,
+                    Type = r.Type,
+                    Reason = r.Reason,
+                    Status = r.Status,
+                    AdminNote = r.AdminNote,
+                    TripId = r.TripId,
+                    TripInfo = r.Trip != null ? $"[{r.Trip.DepartureTime:HH:mm}] {r.Trip.Route.RouteName}" : null,
+                    CreatedAt = r.CreatedAt
+                })
                 .ToListAsync();
-
-            return requests.Select(r => MapToDto(r, r.Driver));
         }
 
         public async Task<IEnumerable<DriverLeaveRequestDto>> GetAllLeaveRequestsAsync()
         {
-            var requests = await _context.DriverLeaveRequests
+            return await _context.DriverLeaveRequests
                 .AsNoTracking()
-                .Include(r => r.Driver)
-                .ThenInclude(d => d.User)
-                .Include(r => r.Trip)
-                .ThenInclude(t => t.Route)
                 .OrderByDescending(r => r.CreatedAt)
+                .Select(r => new DriverLeaveRequestDto
+                {
+                    LeaveRequestId = r.LeaveRequestId,
+                    DriverId = r.DriverId,
+                    DriverName = r.Driver.User.FullName ?? "Unknown",
+                    LicenseNumber = r.Driver.LicenseNumber ?? "",
+                    LeaveDate = r.LeaveDate,
+                    Type = r.Type,
+                    Reason = r.Reason,
+                    Status = r.Status,
+                    AdminNote = r.AdminNote,
+                    TripId = r.TripId,
+                    TripInfo = r.Trip != null ? $"[{r.Trip.DepartureTime:HH:mm}] {r.Trip.Route.RouteName}" : null,
+                    CreatedAt = r.CreatedAt
+                })
                 .ToListAsync();
-
-            return requests.Select(r => MapToDto(r, r.Driver));
         }
 
         public async Task<bool> ProcessLeaveRequestAsync(int requestId, ProcessLeaveRequestDto processDto)
@@ -94,6 +118,18 @@ namespace BookingTicket.Application.Services
             }
 
             await _context.SaveChangesAsync();
+
+            // Notify Driver
+            var driverUserId = await _context.Drivers
+                .Where(d => d.DriverId == request.DriverId)
+                .Select(d => d.UserId)
+                .FirstOrDefaultAsync();
+
+            if (!string.IsNullOrEmpty(driverUserId))
+            {
+                await _notificationService.SendNotificationToUserAsync(driverUserId, $"Yêu cầu nghỉ của bạn đã được {request.Status}: {request.AdminNote}");
+            }
+
             return true;
         }
 

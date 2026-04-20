@@ -21,6 +21,7 @@ namespace BookingTicket.Application.Services
         private readonly IEmailService _emailService;
         private readonly IServiceScopeFactory _scopeFactory;
         private readonly IMapper _mapper;
+        private readonly INotificationService _notificationService;
  
         public BookingService(
             IBookingRepository bookingRepository,
@@ -29,7 +30,8 @@ namespace BookingTicket.Application.Services
             ITripRepository tripRepository,
             IEmailService emailService,
             IServiceScopeFactory scopeFactory,
-            IMapper mapper)
+            IMapper mapper,
+            INotificationService notificationService)
         {
             _bookingRepository = bookingRepository;
             _ticketRepository = ticketRepository;
@@ -38,6 +40,7 @@ namespace BookingTicket.Application.Services
             _emailService = emailService;
             _scopeFactory = scopeFactory;
             _mapper = mapper;
+            _notificationService = notificationService;
         }
 
 
@@ -94,8 +97,8 @@ namespace BookingTicket.Application.Services
             
             var result = await GetBookingByIdAsync(booking.BookingId);
 
-            // 4. Bỏ phần gửi Mail xác nhận ngay lập tức tại đây. 
-            // Mail chỉ nên được gửi khi PaymentController nhận được Webhook thanh toán thành công từ PayOS/VNPay.
+            // 4. Gửi thông báo realtime cho Admin
+            await _notificationService.SendNotificationToAllAsync($"Có đơn đặt vé mới: {booking.CustomerName} - {totalPrice:N0} VNĐ");
 
             return result;
         }
@@ -273,6 +276,9 @@ namespace BookingTicket.Application.Services
                 });
             }
 
+            // Thông báo realtime về cập nhật trạng thái
+            await _notificationService.SendNotificationToAllAsync($"Đơn hàng DSL{booking.BookingId:D6} đã được cập nhật sang: {booking.Status}");
+
             return true;
         }
 
@@ -407,6 +413,10 @@ namespace BookingTicket.Application.Services
             booking.RefundAccountName = request.AccountName;
             
             await _bookingRepository.UpdateAsync(booking);
+
+            // Notify Admin
+            await _notificationService.SendNotificationToAllAsync($"Yêu cầu hủy vé mới từ {booking.CustomerName} cho đơn DSL{booking.BookingId:D6}");
+
             return true;
         }
 
@@ -437,6 +447,13 @@ namespace BookingTicket.Application.Services
             }
 
             await _bookingRepository.UpdateAsync(booking);
+
+            // Notify User (if logged in)
+            if (!string.IsNullOrEmpty(booking.UserId))
+            {
+                string statusText = approve ? "được chấp nhận" : "bị từ chối";
+                await _notificationService.SendNotificationToUserAsync(booking.UserId, $"Yêu cầu hủy vé DSL{booking.BookingId:D6} của bạn đã {statusText}.");
+            }
 
             // Gửi mail thông báo kết quả cho khách hàng
             if (!string.IsNullOrEmpty(booking.CustomerEmail))
@@ -556,7 +573,7 @@ namespace BookingTicket.Application.Services
 
         public async Task<int> GetPendingCancellationCountAsync()
         {
-            return await _bookingRepository.CountAsync(b => b.Status == 4);
+            return await _bookingRepository.CountAsync(b => b.Status == BookingStatus.RequestedCancellation);
         }
 
         public async Task<int> GetMidTripDropOffCountAsync()

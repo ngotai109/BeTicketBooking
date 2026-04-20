@@ -115,17 +115,35 @@ namespace BookingTicket.API.Controllers
         {
             try
             {
-                dynamic orderInfo = await _payOSService.GetOrderDetailsAsync(request.OrderCode);
-                if (orderInfo != null && orderInfo.status == "PAID")
+                if (request.OrderCode <= 0) return BadRequest(new { message = "Mã đơn hàng không hợp lệ" });
+
+                var orderInfo = await _payOSService.GetOrderDetailsAsync(request.OrderCode);
+                if (orderInfo == null)
+                {
+                    return NotFound(new { message = "Không tìm thấy đơn hàng trên PayOS" });
+                }
+
+                // Ép kiểu dynamic để lấy biến status
+                // Một số SDK dùng 'status', một số dùng 'Status'
+                dynamic dynamicOrder = orderInfo;
+                string status = "";
+                try { status = (string)dynamicOrder.status; }
+                catch { status = (string)dynamicOrder.Status; }
+
+                if (status == "PAID")
                 {
                     await _bookingService.UpdateBookingStatusAsync(request.BookingId, 1);
                     return Ok(new { status = "PAID", message = "Thanh toán thành công" });
                 }
-                return Ok(new { status = orderInfo.status });
+                
+                return Ok(new { status = status });
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                string errorMsg = $"[PAYOS_CHECK_ERROR] {DateTime.Now}: {ex.Message}\n{ex.StackTrace}\n";
+                try { System.IO.File.AppendAllText("payos_check_error.txt", errorMsg); } catch {}
+                
+                return BadRequest(new { message = "Lỗi khi kiểm tra trạng thái PayOS", details = ex.Message });
             }
         }
     }
