@@ -21,6 +21,6 @@ namespace BookingTicket.Application.DTOs.Driver
     public class ProcessLeaveRequestDto
     {
         public int Status { get; set; }
-        public string AdminNote { get; set; }
+        public string? AdminNote { get; set; }
     }
 }

@@ -23,6 +23,7 @@ namespace BookingTicket.Application.Interfaces.IServices
         DbSet<PaymentMethods> PaymentMethods { get; }
         DbSet<Schedules> Schedules { get; }
         DbSet<DriverLeaveRequests> DriverLeaveRequests { get; }
+        DbSet<Notifications> Notifications { get; }
         DbSet<IdentityUserToken<string>> UserTokens { get; }
         
         Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);

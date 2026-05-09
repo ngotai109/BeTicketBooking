@@ -34,11 +34,25 @@ namespace BookingTicket.Application.Services
             var previousMonthStart = targetMonthStart.AddMonths(-1);
             var previousMonthEnd = targetMonthStart;
             
-            var allBookings = await _bookingRepository.GetAllAsync();
-            var confirmedAll = allBookings.Where(b => b.Status != BookingStatus.Cancelled).ToList();
+            var allBookingsWithDetails = await _bookingRepository.GetAllWithDetailsAsync();
+            var confirmedAll = allBookingsWithDetails.Where(b => b.Status != BookingStatus.Cancelled).ToList();
 
             var targetMonthBookings = confirmedAll.Where(b => b.BookingDate >= targetMonthStart && b.BookingDate < targetMonthEnd).ToList();
             var previousMonthBookings = confirmedAll.Where(b => b.BookingDate >= previousMonthStart && b.BookingDate < previousMonthEnd).ToList();
+
+            // Tính doanh thu theo tuyến
+            var revenueByRoute = targetMonthBookings
+                .GroupBy(b => {
+                    var firstTicket = b.Tickets?.FirstOrDefault();
+                    return firstTicket?.TripSeat?.Trip?.Route?.RouteName ?? "Khác";
+                })
+                .Select(g => new RouteRevenueDto
+                {
+                    RouteName = g.Key,
+                    Revenue = g.Sum(b => b.TotalPrice)
+                })
+                .OrderByDescending(r => r.Revenue)
+                .ToList();
 
             var allTrips = await _tripRepository.GetAllAsync();
             var currentMonthTrips = allTrips.Where(t => t.DepartureTime >= targetMonthStart && t.DepartureTime < targetMonthEnd).ToList();
@@ -111,6 +125,7 @@ namespace BookingTicket.Application.Services
                 TotalTripsToday = todayTrips.Count,
                 TripStatusStats = tripStats,
                 RevenueLast7Days = revenueByDay,
+                RevenueByRoute = revenueByRoute,
                 RevenueChange = revenueChange,
                 TicketChange = ticketChange,
                 CustomerChange = customerChange,

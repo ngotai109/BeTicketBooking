@@ -9,8 +9,9 @@ using System.Threading.Tasks;
 using BookingTicket.Domain.Common;
 using BookingTicket.Domain.Enums;
 using BookingTicket.Domain.Interfaces.IRepositories;
-using BookingTicket.Infrastructure.Helpers;
+using System.Text.RegularExpressions;
 using Microsoft.Extensions.Configuration;
+using BookingTicket.Infrastructure.Helpers;
 
 namespace BookingTicket.Infrastructure.Repositories
 {
@@ -20,6 +21,7 @@ namespace BookingTicket.Infrastructure.Repositories
         private readonly IProvinceRepository _provinceRepository;
         private readonly IOfficeRepository _officeRepository;
         private readonly ITripRepository _tripRepository;
+        private readonly IBookingRepository _bookingRepository;
         private readonly string _apiKey;
         private readonly string _model = "llama-3.3-70b-versatile";
 
@@ -28,12 +30,14 @@ namespace BookingTicket.Infrastructure.Repositories
             IProvinceRepository provinceRepository, 
             IOfficeRepository officeRepository, 
             ITripRepository tripRepository,
+            IBookingRepository bookingRepository,
             IConfiguration configuration)
         {
             _httpClient = httpClient;
             _provinceRepository = provinceRepository;
             _officeRepository = officeRepository;
             _tripRepository = tripRepository;
+            _bookingRepository = bookingRepository;
             _apiKey = configuration["Groq:ApiKey"] ?? "";
         }
 
@@ -60,7 +64,7 @@ namespace BookingTicket.Infrastructure.Repositories
                 systemPrompt.AppendLine("- Cung cấp thông tin văn phòng, số điện thoại nhà xe.");
                 systemPrompt.AppendLine("\nQUY TẮC:");
                 systemPrompt.AppendLine("1. Chỉ sử dụng dữ liệu được cung cấp dưới đây. Tuyệt đối không tự bịa đặt thông tin.");
-                systemPrompt.AppendLine("2. Nếu không tìm thấy chuyến xe phù hợp, hãy lịch sự đề nghị khách để lại thông tin hoặc gọi hotline: 1900 xxxx.");
+                systemPrompt.AppendLine("2. Nếu không tìm thấy chuyến xe phù hợp, hãy lịch sự đề nghị khách để lại thông tin hoặc gọi hotline: 1900 3088.");
                 systemPrompt.AppendLine("3. Trả lời bằng tiếng Việt, lịch sự, thân thiện và chuyên nghiệp.");
 
                 // LUÔN CUNG CẤP DỮ LIỆU CƠ BẢN: Văn phòng và Tỉnh thành
@@ -81,12 +85,12 @@ namespace BookingTicket.Infrastructure.Repositories
 
                 if (isAskingForTrip)
                 {
-                    // Lấy các chuyến xe trong vòng 3 ngày tới
+                 
                     var upcomingTrips = await _tripRepository.GetTripsWithDetailsAsync(currentTime.Date.AddDays(0), null);
                     var tripsInRange = upcomingTrips
                         .Where(t => t.DepartureTime >= currentTime)
                         .OrderBy(t => t.DepartureTime)
-                        .Take(20); // Tăng lên 20 chuyến để bao quát dữ liệu tốt hơn
+                        .Take(20); 
 
                     if (tripsInRange.Any())
                     {
@@ -97,6 +101,61 @@ namespace BookingTicket.Infrastructure.Repositories
                             systemPrompt.AppendLine($"- Chuyến: {trip.Route.DepartureOffice.OfficeName} -> {trip.Route.ArrivalOffice.OfficeName}");
                             systemPrompt.AppendLine($"  Khởi hành: {trip.DepartureTime:HH:mm dd/MM/yyyy}. Giá vé: {trip.TicketPrice:N0} VNĐ. Số ghế trống: {availableSeats}. Loại xe: {trip.Bus.BusType.TypeName}");
                         }
+                    }
+                }
+
+                // TRA CỨU THEO MÃ VÉ HOẶC SỐ ĐIỆN THOẠI
+                var codeMatch = Regex.Match(lastMessage, @"dsl\s*(\d{6})");
+                var phoneMatch = Regex.Match(lastMessage, @"0\d{9}");
+
+                if (codeMatch.Success)
+                {
+                    string idPart = codeMatch.Groups[1].Value;
+                    if (int.TryParse(idPart, out int bookingId))
+                    {
+                        var booking = await _bookingRepository.GetByIdWithDetailsAsync(bookingId);
+                        if (booking != null)
+                        {
+                            systemPrompt.AppendLine("\nTHÔNG TIN VÉ NGƯỜI DÙNG ĐANG HỎI:");
+                            systemPrompt.AppendLine($"- Mã vé: DSL{booking.BookingId:D6}");
+                            systemPrompt.AppendLine($"- Khách hàng: {booking.CustomerName}");
+                            systemPrompt.AppendLine($"- SĐT: {booking.CustomerPhone}");
+                            systemPrompt.AppendLine($"- Trạng thái: {booking.Status}");
+                            systemPrompt.AppendLine($"- Tổng tiền: {booking.TotalPrice:N0} VNĐ");
+                            
+                            var firstTicket = booking.Tickets?.FirstOrDefault();
+                            if (firstTicket?.TripSeat?.Trip != null)
+                            {
+                                var trip = firstTicket.TripSeat.Trip;
+                                systemPrompt.AppendLine($"- Tuyến: {trip.Route.RouteName}");
+                                systemPrompt.AppendLine($"- Khởi hành: {trip.DepartureTime:HH:mm dd/MM/yyyy}");
+                                systemPrompt.AppendLine($"- Ghế: {string.Join(", ", booking.Tickets.Select(t => t.TripSeat?.Seat?.SeatNumber))}");
+                            }
+                        }
+                        else
+                        {
+                            systemPrompt.AppendLine($"\nLƯU Ý: Người dùng hỏi về mã vé DSL{idPart} nhưng KHÔNG tìm thấy trong hệ thống.");
+                        }
+                    }
+                }
+
+                if (phoneMatch.Success)
+                {
+                    string phone = phoneMatch.Value;
+                    var phoneBookings = await _bookingRepository.GetBookingsByPhoneAsync(phone);
+                    if (phoneBookings.Any())
+                    {
+                        systemPrompt.AppendLine($"\nLỊCH SỬ ĐẶT VÉ CỦA SỐ ĐIỆN THOẠI {phone}:");
+                        foreach (var b in phoneBookings.Take(5))
+                        {
+                            var firstTicket = b.Tickets?.FirstOrDefault();
+                            var trip = firstTicket?.TripSeat?.Trip;
+                            systemPrompt.AppendLine($"- Mã: DSL{b.BookingId:D6} | {trip?.Route?.RouteName} | Khởi hành: {trip?.DepartureTime:HH:mm dd/MM/yyyy} | Trạng thái: {b.Status}");
+                        }
+                    }
+                    else if (!codeMatch.Success) // Chỉ thông báo không thấy nếu không đang tìm theo mã vé
+                    {
+                        systemPrompt.AppendLine($"\nLƯU Ý: Không tìm thấy lịch sử đặt vé nào cho số điện thoại {phone}.");
                     }
                 }
                 
@@ -134,7 +193,7 @@ namespace BookingTicket.Infrastructure.Repositories
                     var error = await response.Content.ReadAsStringAsync();
                     if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
                     {
-                        return "Hệ thống Trợ lý ảo hiện đang được bảo trì. Quý khách vui lòng thử lại sau hoặc liên hệ Hotline: 1900 xxxx để được hỗ trợ trực tiếp.";
+                        return "Hệ thống Trợ lý ảo hiện đang được bảo trì. Quý khách vui lòng thử lại sau hoặc liên hệ Hotline: 1900 3088 để được hỗ trợ trực tiếp.";
                     }
                     return $"Rất tiếc, hệ thống gặp sự cố nhỏ khi xử lý yêu cầu. Quý khách vui lòng thử lại sau giây lát.";
                 }

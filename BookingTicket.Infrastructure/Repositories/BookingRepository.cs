@@ -90,6 +90,21 @@ namespace BookingTicket.Infrastructure.Repositories
                             .ThenInclude(tr => tr.Route)
                 .ToListAsync();
         }
+
+        public async Task<IEnumerable<Bookings>> GetBookingsByPhoneAsync(string phone)
+        {
+            return await _context.Bookings
+                .Include(b => b.Tickets)
+                    .ThenInclude(t => t.TripSeat)
+                        .ThenInclude(ts => ts.Seat)
+                .Include(b => b.Tickets)
+                    .ThenInclude(t => t.TripSeat)
+                        .ThenInclude(ts => ts.Trip)
+                            .ThenInclude(tr => tr.Route)
+                .Where(b => b.CustomerPhone == phone)
+                .OrderByDescending(b => b.BookingDate)
+                .ToListAsync();
+        }
     }
 }
  

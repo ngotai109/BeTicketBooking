@@ -4,7 +4,9 @@ using BookingTicket.Domain.Interfaces.IRepositories;
 using BookingTicket.Application.Interfaces.IServices;
 using BookingTicket.Domain.Entities;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
+using BookingTicket.Domain.Projections;
 
 namespace BookingTicket.Application.Services
 {
@@ -21,8 +23,21 @@ namespace BookingTicket.Application.Services
 
         public async Task<IEnumerable<ScheduleDto>> GetAllSchedulesAsync()
         {
-            var schedules = await _scheduleRepository.GetAllWithDetailsAsync();
-            return _mapper.Map<IEnumerable<ScheduleDto>>(schedules);
+            var projections = await _scheduleRepository.GetAllProjectedAsync();
+            return projections.Select(p => new ScheduleDto
+            {
+                ScheduleId = p.ScheduleId,
+                RouteId = p.RouteId,
+                RouteName = p.RouteName,
+                BusId = p.BusId,
+                BusPlate = p.BusPlate,
+                DepartureTime = p.DepartureTime,
+                ArrivalTime = p.ArrivalTime,
+                TicketPrice = p.TicketPrice,
+                IsActive = p.IsActive,
+                DriverId = p.DriverId,
+                DriverName = p.DriverName
+            });
         }
 
         public async Task<ScheduleDto?> GetScheduleByIdAsync(int id)

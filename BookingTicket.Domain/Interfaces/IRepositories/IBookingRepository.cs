@@ -12,5 +12,6 @@ namespace BookingTicket.Domain.Interfaces.IRepositories
         Task<Bookings?> GetByIdWithDetailsAsync(int id);
         Task<IEnumerable<Bookings>> GetPendingRemindersAsync();
         Task<IEnumerable<Bookings>> GetAllWithDetailsAsync();
+        Task<IEnumerable<Bookings>> GetBookingsByPhoneAsync(string phone);
     }
 }

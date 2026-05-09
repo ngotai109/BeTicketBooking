@@ -1,4 +1,5 @@
 using BookingTicket.Domain.Entities;
+using BookingTicket.Domain.Projections;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -8,5 +9,6 @@ namespace BookingTicket.Domain.Interfaces.IRepositories
     {
         Task<IEnumerable<Schedules>> GetAllWithDetailsAsync();
         Task<Schedules?> GetByIdWithDetailsAsync(int id);
+        Task<IEnumerable<ScheduleProjection>> GetAllProjectedAsync();
     }
 }

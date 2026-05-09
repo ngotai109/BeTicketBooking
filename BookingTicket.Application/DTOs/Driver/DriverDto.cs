@@ -41,4 +41,9 @@ namespace BookingTicket.Application.DTOs.Driver
         public int ExperienceYears { get; set; }
         public DriverStatus Status { get; set; }
     }
+    public class DriverLookupDto
+    {
+        public int DriverId { get; set; }
+        public string FullName { get; set; }
+    }
 }

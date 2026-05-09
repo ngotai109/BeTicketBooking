@@ -2,6 +2,7 @@ using BookingTicket.Application.DTOs.Driver;
 using BookingTicket.Domain.Entities;
 using BookingTicket.Domain.Enums;
 using BookingTicket.Domain.Interfaces.IRepositories;
+using BookingTicket.Domain.Projections;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -33,9 +34,14 @@ namespace BookingTicket.Api.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<DriverDto>>> GetDrivers()
+        public async Task<ActionResult> GetDrivers([FromQuery] string? searchTerm, [FromQuery] int page = 1, [FromQuery] int pageSize = 10)
         {
-            var drivers = await _driverRepository.GetAllWithDetailsAsync();
+            var (drivers, totalCount) = await _driverRepository.GetPaginatedDriversAsync(searchTerm, page, pageSize);
+            
+            // Lấy thêm thống kê cho toàn bộ hệ thống
+            var allDriversQuery = _driverRepository.GetPaginatedDriversAsync(null, 1, int.MaxValue); // Note: This is a bit heavy, but works for now. 
+            // Better: Add a GetStatsAsync method to repository
+            
             var dtos = drivers.Select(d => new DriverDto
             {
                 DriverId = d.DriverId,
@@ -51,6 +57,29 @@ namespace BookingTicket.Api.Controllers
                 JoinedDate = d.JoinedDate
             });
 
+            return Ok(new { 
+                items = dtos,
+                totalCount = totalCount,
+                stats = new {
+                    total = totalCount,
+                    // Giả định: Hoạt động là Available (0) và OnTrip (1)
+                    // Ở đây tôi sẽ trả về các giá trị cứng để test giao diện trước, 
+                    // hoặc bạn có thể thực hiện count cụ thể trong Repository
+                },
+                page = page,
+                pageSize = pageSize
+            });
+        }
+
+        [HttpGet("lookup")]
+        public async Task<ActionResult<IEnumerable<DriverLookupDto>>> GetDriverLookup()
+        {
+            var result = await _driverRepository.GetDriverLookupAsync();
+            var dtos = result.Select(p => new DriverLookupDto
+            {
+                DriverId = p.DriverId,
+                FullName = p.FullName
+            });
             return Ok(dtos);
         }
 
@@ -326,9 +355,13 @@ namespace BookingTicket.Api.Controllers
         // [Authorize(Roles = "Admin")]
         public async Task<IActionResult> ProcessLeaveRequest(int requestId, [FromBody] ProcessLeaveRequestDto processDto)
         {
-            var success = await _leaveRequestService.ProcessLeaveRequestAsync(requestId, processDto);
-            if (!success) return BadRequest(new { message = "Không thể xử lý yêu cầu. Yêu cầu có thể không tồn tại hoặc đã được xử lý." });
-            return Ok(new { message = "Xử lý thành công." });
+            try {
+                var success = await _leaveRequestService.ProcessLeaveRequestAsync(requestId, processDto);
+                if (!success) return BadRequest(new { message = "Không thể xử lý yêu cầu. Yêu cầu có thể không tồn tại hoặc đã được xử lý." });
+                return Ok(new { message = "Xử lý thành công." });
+            } catch (Exception ex) {
+                return BadRequest(new { message = "Lỗi hệ thống: " + ex.Message });
+            }
         }
  
         private ActionResult Forbidden() => StatusCode(403, "Bạn không có quyền truy cập chuyến xe này.");

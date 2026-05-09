@@ -18,6 +18,7 @@ namespace BookingTicket.Application.DTOs.Dashboard
         
         public IEnumerable<TripStatusStatDto> TripStatusStats { get; set; } = new List<TripStatusStatDto>();
         public IEnumerable<DailyRevenueDto> RevenueLast7Days { get; set; } = new List<DailyRevenueDto>();
+        public IEnumerable<RouteRevenueDto> RevenueByRoute { get; set; } = new List<RouteRevenueDto>();
     }
 
     public class TripStatusStatDto
@@ -30,6 +31,12 @@ namespace BookingTicket.Application.DTOs.Dashboard
     public class DailyRevenueDto
     {
         public string Date { get; set; } = string.Empty;
+        public decimal Revenue { get; set; }
+    }
+
+    public class RouteRevenueDto
+    {
+        public string RouteName { get; set; } = string.Empty;
         public decimal Revenue { get; set; }
     }
 }

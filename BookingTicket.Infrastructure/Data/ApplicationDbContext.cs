@@ -38,6 +38,7 @@ namespace BookingTicket.Infrastructure.Data
         public DbSet<PaymentMethods> PaymentMethods { get; set; }
 
         public DbSet<DriverLeaveRequests> DriverLeaveRequests { get; set; }
+        public DbSet<Notifications> Notifications { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -163,6 +164,16 @@ namespace BookingTicket.Infrastructure.Data
                 .WithMany(d => d.Trips)
                 .HasForeignKey(t => t.DriverId)
                 .OnDelete(DeleteBehavior.SetNull);
+
+            // ── Notifications ─────────────────────────────────────────────
+            modelBuilder.Entity<Notifications>()
+                .HasKey(n => n.NotificationId);
+
+            modelBuilder.Entity<Notifications>()
+                .HasOne(n => n.User)
+                .WithMany()
+                .HasForeignKey(n => n.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }
