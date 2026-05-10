@@ -80,6 +80,7 @@ namespace BookingTicket.Application.Services
             }
 
             var revenueByDay = new List<DailyRevenueDto>();
+            var ticketsByDay = new List<DailyTicketDto>();
             var trendDays = (targetMonth == now.Month && targetYear == now.Year) ? 7 : DateTime.DaysInMonth(targetYear, targetMonth);
             var trendStart = (targetMonth == now.Month && targetYear == now.Year) ? todayStart.AddDays(-6) : targetMonthStart;
 
@@ -89,20 +90,25 @@ namespace BookingTicket.Application.Services
                 if (date >= targetMonthEnd) break;
                 var nextDate = date.AddDays(1);
                 
-                decimal dailyRev = confirmedAll
-                    .Where(b => b.BookingDate >= date && b.BookingDate < nextDate)
-                    .Sum(b => b.TotalPrice);
+                var bookingsInDay = confirmedAll.Where(b => b.BookingDate >= date && b.BookingDate < nextDate).ToList();
+                decimal dailyRev = bookingsInDay.Sum(b => b.TotalPrice);
+                int dailyTickets = bookingsInDay.Sum(b => b.Tickets?.Count ?? 0);
                 
                 revenueByDay.Add(new DailyRevenueDto
                 {
                     Date = date.ToString("dd/MM"),
                     Revenue = Math.Round(dailyRev / 1000000, 2)
                 });
+
+                ticketsByDay.Add(new DailyTicketDto
+                {
+                    Date = date.ToString("dd/MM"),
+                    TicketCount = dailyTickets
+                });
             }
 
-            var allTickets = await _ticketRepository.GetAllAsync();
-            var targetMonthTicketCount = allTickets.Count(t => targetMonthBookings.Any(b => b.BookingId == t.BookingId));
-            var previousMonthTicketCount = allTickets.Count(t => previousMonthBookings.Any(b => b.BookingId == t.BookingId));
+            var targetMonthTicketCount = targetMonthBookings.Sum(b => b.Tickets?.Count ?? 0);
+            var previousMonthTicketCount = previousMonthBookings.Sum(b => b.Tickets?.Count ?? 0);
 
             double CalculateChange(double current, double previous)
             {
@@ -117,20 +123,47 @@ namespace BookingTicket.Application.Services
             var previousMonthCustomers = previousMonthBookings.Select(b => b.CustomerPhone).Distinct().Count();
             double customerChange = CalculateChange(targetMonthCustomers, previousMonthCustomers);
 
+            var recentActivities = allBookingsWithDetails
+                .OrderByDescending(b => b.BookingDate)
+                .Take(5)
+                .Select(b => new RecentActivityDto
+                {
+                    Action = b.Status == BookingStatus.Cancelled ? $"Hủy vé: {b.CustomerName}" : $"Đặt vé mới: {b.CustomerName}",
+                    User = b.CustomerPhone,
+                    Time = GetTimeAgo(b.BookingDate),
+                    Type = b.Status == BookingStatus.Cancelled ? "cancel" : "booking"
+                })
+                .ToList();
+
+            var previousMonthTrips = allTrips.Where(t => t.DepartureTime >= previousMonthStart && t.DepartureTime < previousMonthEnd).ToList();
+            double tripChange = CalculateChange(currentMonthTrips.Count, previousMonthTrips.Count);
+
             return new DashboardStatsDto
             {
                 TotalTicketsSold = targetMonthTicketCount,
                 TotalRevenue = targetMonthBookings.Sum(b => b.TotalPrice),
                 TotalCustomers = targetMonthCustomers,
-                TotalTripsToday = todayTrips.Count,
+                TotalTripsMonth = currentMonthTrips.Count,
                 TripStatusStats = tripStats,
                 RevenueLast7Days = revenueByDay,
+                TicketsByDay = ticketsByDay,
+                RecentActivities = recentActivities,
                 RevenueByRoute = revenueByRoute,
                 RevenueChange = revenueChange,
                 TicketChange = ticketChange,
                 CustomerChange = customerChange,
-                TripChange = 0
+                TripChange = tripChange
             };
+        }
+
+        private string GetTimeAgo(DateTime dateTime)
+        {
+            var span = DateTime.Now - dateTime;
+            if (span.TotalDays > 30) return dateTime.ToString("dd/MM/yyyy");
+            if (span.TotalDays > 1) return $"{(int)span.TotalDays} ngày trước";
+            if (span.TotalHours > 1) return $"{(int)span.TotalHours} giờ trước";
+            if (span.TotalMinutes > 1) return $"{(int)span.TotalMinutes} phút trước";
+            return "Vừa xong";
         }
 
         public async Task<byte[]> ExportRevenueReportAsync(int month, int year)
