@@ -35,7 +35,13 @@ namespace BookingTicket.Application.Services
             var previousMonthEnd = targetMonthStart;
             
             var allBookingsWithDetails = await _bookingRepository.GetAllWithDetailsAsync();
-            var confirmedAll = allBookingsWithDetails.Where(b => b.Status != BookingStatus.Cancelled).ToList();
+            // Chỉ tính doanh thu từ các đơn đã thanh toán (Paid), đã hoàn thành (Completed) 
+            // hoặc đang chờ hủy (RequestedCancellation) - vì tiền vẫn đang ở hệ thống cho đến khi xác nhận hủy.
+            var confirmedAll = allBookingsWithDetails
+                .Where(b => b.Status == BookingStatus.Paid || 
+                            b.Status == BookingStatus.Completed || 
+                            b.Status == BookingStatus.RequestedCancellation)
+                .ToList();
 
             var targetMonthBookings = confirmedAll.Where(b => b.BookingDate >= targetMonthStart && b.BookingDate < targetMonthEnd).ToList();
             var previousMonthBookings = confirmedAll.Where(b => b.BookingDate >= previousMonthStart && b.BookingDate < previousMonthEnd).ToList();
@@ -173,7 +179,10 @@ namespace BookingTicket.Application.Services
 
             var confirmedBookings = await _bookingRepository.GetAllAsync();
             var bookingsThisMonth = confirmedBookings
-                .Where(b => b.Status != BookingStatus.Cancelled && b.BookingDate >= start && b.BookingDate < end)
+                .Where(b => (b.Status == BookingStatus.Paid || 
+                             b.Status == BookingStatus.Completed || 
+                             b.Status == BookingStatus.RequestedCancellation) && 
+                            b.BookingDate >= start && b.BookingDate < end)
                 .OrderBy(b => b.BookingDate)
                 .ToList();
 
@@ -184,7 +193,7 @@ namespace BookingTicket.Application.Services
 
             foreach (var b in bookingsThisMonth)
             {
-                var statusLabel = b.Status == BookingStatus.Completed ? "Đã hoàn thành" : b.Status == BookingStatus.Confirmed ? "Đã xác nhận" : "Chờ xử lý";
+                var statusLabel = b.Status == BookingStatus.Completed ? "Đã hoàn thành" : b.Status == BookingStatus.Paid ? "Đã thanh toán" : "Chờ xử lý";
                 csv.AppendLine($"BTK{b.BookingId:D5},{b.BookingDate:dd/MM/yyyy HH:mm},\"{b.CustomerName}\",{b.CustomerPhone},{b.TotalPrice},\"{statusLabel}\"");
             }
 

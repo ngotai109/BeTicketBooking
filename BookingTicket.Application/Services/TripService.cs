@@ -95,7 +95,7 @@ namespace BookingTicket.Application.Services
                     CustomerPhone = phoneNumber ?? "N/A",
                     BookingDate = DateTime.Now,
                     TotalPrice = trip?.TicketPrice ?? 0,
-                    Status = status == 1 ? BookingStatus.Pending : BookingStatus.Confirmed,
+                    Status = status == 1 ? BookingStatus.Pending : BookingStatus.Paid,
                     AdminNote = "Đặt vé nhanh từ Admin"
                 };
                 await _bookingRepository.AddAsync(booking);
@@ -215,8 +215,10 @@ namespace BookingTicket.Application.Services
 
         public async Task<IEnumerable<TripMonitoringDto>> SearchTripsAsync(string departure, string destination, DateTime date)
         {
-            var trips = await _tripRepository.GetTripsWithDetailsAsync(date, null);
+            // 1. Lọc ở Database trước (Rất quan trọng để tối ưu hiệu năng)
+            var trips = await _tripRepository.SearchTripsAsync(departure, destination, date);
 
+            // 2. Lọc thêm ở Memory bằng RemoveDiacritics nếu cần (cho tìm kiếm tiếng Việt không dấu linh hoạt hơn)
             var depSearch = RemoveDiacritics(departure ?? "").ToLower();
             var destSearch = RemoveDiacritics(destination ?? "").ToLower();
 
@@ -234,6 +236,7 @@ namespace BookingTicket.Application.Services
                                depWardName.Contains(depSearch);
 
                 bool destMatch = string.IsNullOrWhiteSpace(destSearch) ||
+                                destSearch.Length == 0 ||
                                 routeName.Contains(destSearch) ||
                                 arrOfficeName.Contains(destSearch) ||
                                 arrWardName.Contains(destSearch);
@@ -242,6 +245,8 @@ namespace BookingTicket.Application.Services
             }).ToList();
 
             var tripIds = filteredTrips.Select(t => t.TripId).Distinct().ToList();
+            if (!tripIds.Any()) return new List<TripMonitoringDto>();
+
             var seatCounts = await _tripSeatRepository.GetSeatCountsForTripsAsync(tripIds);
 
             var result = new List<TripMonitoringDto>();
@@ -323,8 +328,7 @@ namespace BookingTicket.Application.Services
             };
 
             // UPFRONT SEAT GENERATION: Prepare seats for "Real Booking"
-            var allSeats = await _seatRepository.GetAllAsync();
-            var busSeats = allSeats.Where(s => s.BusId == schedule.BusId && s.IsActive).ToList();
+            var busSeats = (await _seatRepository.GetSeatsByBusIdAsync(schedule.BusId)).Where(s => s.IsActive).ToList();
 
             foreach (var seat in busSeats)
             {
@@ -346,27 +350,29 @@ namespace BookingTicket.Application.Services
             
             if (trip == null || trip.BusId <= 0) return;
 
-            var allSeats = await _seatRepository.GetAllAsync();
-            var busSeats = allSeats.Where(s => s.BusId == trip.BusId && s.IsActive).ToList();
+            // Tối ưu: Chỉ lấy ghế của Bus tương ứng, không lấy ALL ghế trong hệ thống
+            var busSeats = (await _seatRepository.GetSeatsByBusIdAsync(trip.BusId)).Where(s => s.IsActive).ToList();
 
             // TRƯỜNG HỢP 1: Chưa có ghế nào -> Sinh mới
             if (!currentSeats.Any())
             {
                 if (busSeats.Any())
                 {
-                    foreach (var seat in busSeats)
+                    var newTripSeats = busSeats.Select(seat => new TripSeats
                     {
-                        await _tripSeatRepository.AddAsync(new TripSeats
-                        {
-                            TripId = tripId,
-                            SeatId = seat.SeatId,
-                            Status = SeatStatus.Available
-                        });
+                        TripId = tripId,
+                        SeatId = seat.SeatId,
+                        Status = SeatStatus.Available
+                    }).ToList();
+
+                    // Tối ưu: Dùng AddRange nếu có (ở đây giả sử repository hỗ trợ hoặc dùng vòng lặp nhưng tối ưu hơn)
+                    foreach (var ts in newTripSeats)
+                    {
+                        await _tripSeatRepository.AddAsync(ts);
                     }
                 }
             }
             // TRƯỜNG HỢP 2: Đã có ghế nhưng số lượng hoặc cấu trúc sai (do lỗi logic cũ)
-            // Chỉ thực hiện sửa lại nếu CHƯA CÓ AI ĐẶT GHẾ (để an toàn)
             else if (currentSeats.Count() != busSeats.Count && !currentSeats.Any(s => s.Status == SeatStatus.Booked))
             {
                 // Xóa hết ghế cũ bị sai
@@ -375,7 +381,7 @@ namespace BookingTicket.Application.Services
                     await _tripSeatRepository.DeleteAsync(oldSeat);
                 }
 
-                // Sinh lại ghế theo đúng cấu trúc Bus đã chuẩn hóa
+                // Sinh lại ghế
                 foreach (var seat in busSeats)
                 {
                     await _tripSeatRepository.AddAsync(new TripSeats

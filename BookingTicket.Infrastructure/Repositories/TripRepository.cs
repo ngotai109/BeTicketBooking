@@ -23,6 +23,7 @@ namespace BookingTicket.Infrastructure.Repositories
                 .Include(t => t.Route).ThenInclude(r => r.ArrivalOffice).ThenInclude(o => o.Ward)
                 .Include(t => t.Bus).ThenInclude(b => b.BusType)
                 .Include(t => t.Driver).ThenInclude(d => d.User)
+                .AsNoTracking()
                 .AsQueryable();
 
             if (date.HasValue)
@@ -33,6 +34,34 @@ namespace BookingTicket.Infrastructure.Repositories
             if (routeId.HasValue)
             {
                 query = query.Where(t => t.RouteId == routeId.Value);
+            }
+
+            return await query.ToListAsync();
+        }
+
+        public async Task<IEnumerable<Trips>> SearchTripsAsync(string departure, string destination, DateTime date)
+        {
+            var query = _context.Trips
+                .Include(t => t.Route).ThenInclude(r => r.DepartureOffice).ThenInclude(o => o.Ward)
+                .Include(t => t.Route).ThenInclude(r => r.ArrivalOffice).ThenInclude(o => o.Ward)
+                .Include(t => t.Bus).ThenInclude(b => b.BusType)
+                .Include(t => t.Driver).ThenInclude(d => d.User)
+                .Where(t => t.DepartureTime.Date == date.Date)
+                .AsNoTracking()
+                .AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(departure))
+            {
+                query = query.Where(t => t.Route.DepartureOffice.OfficeName.Contains(departure) || 
+                                       t.Route.DepartureOffice.Ward.WardName.Contains(departure) ||
+                                       t.Route.RouteName.Contains(departure));
+            }
+
+            if (!string.IsNullOrWhiteSpace(destination))
+            {
+                query = query.Where(t => t.Route.ArrivalOffice.OfficeName.Contains(destination) || 
+                                       t.Route.ArrivalOffice.Ward.WardName.Contains(destination) ||
+                                       t.Route.RouteName.Contains(destination));
             }
 
             return await query.ToListAsync();
@@ -57,7 +86,7 @@ namespace BookingTicket.Infrastructure.Repositories
                 .Include(t => t.Route)
                     .ThenInclude(r => r.ArrivalOffice)
                 .Include(t => t.Bus)
-                .Include(t => t.TripSeats)
+                .AsNoTracking()
                 .Where(t => t.DriverId == driverId)
                 .OrderBy(t => t.DepartureTime)
                 .ToListAsync();

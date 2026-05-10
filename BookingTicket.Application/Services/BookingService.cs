@@ -218,7 +218,7 @@ namespace BookingTicket.Application.Services
             }
 
             // Nếu chuyển sang trạng thái Confirmed (1) và trước đó chưa Confirmed
-            if (booking.Status == BookingStatus.Confirmed && oldStatus != BookingStatus.Confirmed)
+            if (booking.Status == BookingStatus.Paid && oldStatus != BookingStatus.Paid)
             {
                 // Cập nhật trạng thái GHẾ sang Booked (Đã bán)
                 foreach (var ticket in booking.Tickets)
@@ -404,7 +404,7 @@ namespace BookingTicket.Application.Services
         public async Task<bool> RequestCancellationAsync(int bookingId, CancellationRequestDto request)
         {
             var booking = await _bookingRepository.GetByIdAsync(bookingId);
-            if (booking == null || (booking.Status != BookingStatus.Confirmed && booking.Status != BookingStatus.Pending)) return false;
+            if (booking == null || (booking.Status != BookingStatus.Paid && booking.Status != BookingStatus.Pending)) return false;
 
             booking.Status = BookingStatus.RequestedCancellation;
             booking.CancellationReason = request.Reason;
@@ -442,7 +442,7 @@ namespace BookingTicket.Application.Services
             }
             else
             {
-                booking.Status = BookingStatus.Confirmed; // Trả lại trạng thái Đã thanh toán nếu từ chối
+                booking.Status = BookingStatus.Paid; // Trả lại trạng thái Đã thanh toán nếu từ chối
                 booking.AdminNote = adminNote;
             }
 

@@ -61,7 +61,7 @@ namespace BookingTicket.Infrastructure.Repositories
             var reminderWindowEnd = now.AddMinutes(45);
 
             return await _context.Bookings
-                .Where(b => (b.Status == BookingStatus.Confirmed || b.Status == BookingStatus.Pending) && !b.IsReminderSent)
+                .Where(b => (b.Status == BookingStatus.Paid || b.Status == BookingStatus.Pending) && !b.IsReminderSent)
                 .Include(b => b.Tickets)
                     .ThenInclude(t => t.TripSeat)
                         .ThenInclude(ts => ts.Trip)

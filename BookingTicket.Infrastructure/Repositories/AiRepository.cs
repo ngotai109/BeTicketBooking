@@ -21,6 +21,7 @@ namespace BookingTicket.Infrastructure.Repositories
         private readonly IProvinceRepository _provinceRepository;
         private readonly IOfficeRepository _officeRepository;
         private readonly ITripRepository _tripRepository;
+        private readonly ITripSeatRepository _tripSeatRepository;
         private readonly IBookingRepository _bookingRepository;
         private readonly string _apiKey;
         private readonly string _model = "llama-3.3-70b-versatile";
@@ -30,6 +31,7 @@ namespace BookingTicket.Infrastructure.Repositories
             IProvinceRepository provinceRepository, 
             IOfficeRepository officeRepository, 
             ITripRepository tripRepository,
+            ITripSeatRepository tripSeatRepository,
             IBookingRepository bookingRepository,
             IConfiguration configuration)
         {
@@ -37,6 +39,7 @@ namespace BookingTicket.Infrastructure.Repositories
             _provinceRepository = provinceRepository;
             _officeRepository = officeRepository;
             _tripRepository = tripRepository;
+            _tripSeatRepository = tripSeatRepository;
             _bookingRepository = bookingRepository;
             _apiKey = configuration["Groq:ApiKey"] ?? "";
         }
@@ -85,22 +88,62 @@ namespace BookingTicket.Infrastructure.Repositories
 
                 if (isAskingForTrip)
                 {
-                 
-                    var upcomingTrips = await _tripRepository.GetTripsWithDetailsAsync(currentTime.Date.AddDays(0), null);
-                    var tripsInRange = upcomingTrips
-                        .Where(t => t.DepartureTime >= currentTime)
+                    DateTime searchDate = currentTime.Date;
+                    
+                    // 1. Thử trích xuất ngày dạng dd/MM hoặc dd/MM/yyyy
+                    var dateMatch = Regex.Match(lastMessage, @"(\d{1,2})[/-](\d{1,2})([/-](\d{4}))?");
+                    if (dateMatch.Success)
+                    {
+                        try
+                        {
+                            int day = int.Parse(dateMatch.Groups[1].Value);
+                            int month = int.Parse(dateMatch.Groups[2].Value);
+                            int year = dateMatch.Groups[4].Success ? int.Parse(dateMatch.Groups[4].Value) : currentTime.Year;
+                            searchDate = new DateTime(year, month, day);
+                        }
+                        catch { /* Bỏ qua nếu ngày không hợp lệ */ }
+                    }
+                    // 2. Các từ khóa tương đối
+                    else if (lastMessage.Contains("mai"))
+                    {
+                        searchDate = currentTime.Date.AddDays(1);
+                    }
+                    else if (lastMessage.Contains("kia"))
+                    {
+                        searchDate = currentTime.Date.AddDays(2);
+                    }
+
+                    var tripsForDate = await _tripRepository.GetTripsWithDetailsAsync(searchDate, null);
+                    var tripIds = tripsForDate.Select(t => t.TripId).ToList();
+                    
+                    // Thực tế là ta cần gọi _tripSeatRepository
+                    var stats = await GetSeatStatsForAi(tripIds);
+
+                    var tripsInRange = tripsForDate
                         .OrderBy(t => t.DepartureTime)
-                        .Take(20); 
+                        .Take(25); 
 
                     if (tripsInRange.Any())
                     {
-                        systemPrompt.AppendLine("\nLỊCH TRÌNH CHUYẾN XE (Ưu tiên gợi ý chuyến nhiều ghế trống):");
+                        systemPrompt.AppendLine($"\nLỊCH TRÌNH CHUYẾN XE NGÀY {searchDate:dd/MM/yyyy}:");
                         foreach (var trip in tripsInRange)
                         {
-                            var availableSeats = trip.TripSeats.Count(s => s.Status == SeatStatus.Available);
-                            systemPrompt.AppendLine($"- Chuyến: {trip.Route.DepartureOffice.OfficeName} -> {trip.Route.ArrivalOffice.OfficeName}");
-                            systemPrompt.AppendLine($"  Khởi hành: {trip.DepartureTime:HH:mm dd/MM/yyyy}. Giá vé: {trip.TicketPrice:N0} VNĐ. Số ghế trống: {availableSeats}. Loại xe: {trip.Bus.BusType.TypeName}");
+                            stats.TryGetValue(trip.TripId, out var counts);
+                            int availableSeats = counts.total - counts.booked;
+                            
+                            string statusText = trip.DepartureTime < currentTime ? "(Đã khởi hành)" : (availableSeats > 0 ? $"(Còn {availableSeats} ghế)" : "(Hết vé)");
+
+                            systemPrompt.AppendLine($"- **Chuyến**: {trip.Route.DepartureOffice.OfficeName} -> {trip.Route.ArrivalOffice.OfficeName}");
+                            systemPrompt.AppendLine($"  + Khởi hành: {trip.DepartureTime:HH:mm}");
+                            systemPrompt.AppendLine($"  + Giá vé: {trip.TicketPrice:N0} VNĐ");
+                            systemPrompt.AppendLine($"  + Trạng thái: {statusText}");
+                            systemPrompt.AppendLine($"  + Loại xe: {trip.Bus?.BusType?.TypeName}");
+                            systemPrompt.AppendLine(""); // Dòng trống ngăn cách các chuyến
                         }
+                    }
+                    else
+                    {
+                         systemPrompt.AppendLine($"\nLƯU Ý: Hiện tại không còn chuyến xe nào khởi hành trong ngày {searchDate:dd/MM/yyyy}.");
                     }
                 }
 
@@ -120,7 +163,7 @@ namespace BookingTicket.Infrastructure.Repositories
                             systemPrompt.AppendLine($"- Mã vé: DSL{booking.BookingId:D6}");
                             systemPrompt.AppendLine($"- Khách hàng: {booking.CustomerName}");
                             systemPrompt.AppendLine($"- SĐT: {booking.CustomerPhone}");
-                            systemPrompt.AppendLine($"- Trạng thái: {booking.Status}");
+                            systemPrompt.AppendLine($"- Trạng thái: {(booking.Status == BookingStatus.Paid ? "Đã thanh toán" : (booking.Status == BookingStatus.Pending ? "Chờ thanh toán" : (booking.Status == BookingStatus.Cancelled ? "Đã hủy" : booking.Status.ToString())))}");
                             systemPrompt.AppendLine($"- Tổng tiền: {booking.TotalPrice:N0} VNĐ");
                             
                             var firstTicket = booking.Tickets?.FirstOrDefault();
@@ -150,7 +193,8 @@ namespace BookingTicket.Infrastructure.Repositories
                         {
                             var firstTicket = b.Tickets?.FirstOrDefault();
                             var trip = firstTicket?.TripSeat?.Trip;
-                            systemPrompt.AppendLine($"- Mã: DSL{b.BookingId:D6} | {trip?.Route?.RouteName} | Khởi hành: {trip?.DepartureTime:HH:mm dd/MM/yyyy} | Trạng thái: {b.Status}");
+                            string statusVn = b.Status == BookingStatus.Paid ? "Đã thanh toán" : (b.Status == BookingStatus.Pending ? "Chờ thanh toán" : (b.Status == BookingStatus.Cancelled ? "Đã hủy" : b.Status.ToString()));
+                            systemPrompt.AppendLine($"- Mã: DSL{b.BookingId:D6} | {trip?.Route?.RouteName} | Khởi hành: {trip?.DepartureTime:HH:mm dd/MM/yyyy} | Trạng thái: {statusVn}");
                         }
                     }
                     else if (!codeMatch.Success) // Chỉ thông báo không thấy nếu không đang tìm theo mã vé
@@ -219,6 +263,11 @@ namespace BookingTicket.Infrastructure.Repositories
             };
 
             return responses[new Random().Next(responses.Count)];
+        }
+        private async Task<Dictionary<int, (int total, int booked)>> GetSeatStatsForAi(List<int> tripIds)
+        {
+            if (tripIds == null || !tripIds.Any()) return new Dictionary<int, (int total, int booked)>();
+            return await _tripSeatRepository.GetSeatCountsForTripsAsync(tripIds);
         }
     }
 }
